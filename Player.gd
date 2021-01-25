@@ -8,17 +8,17 @@ const animationDuration = [10, 0.3]
 var animationTimeElapsed: float = 0;
 var isActing: bool = false
 var moveAction = false
-var movementSpeed: float = Globals.tile_size / animationDuration[State.Run]
+var movementSpeed: float
 var state = State.Idle
 var destination
 var Core
 var fogMap = []
-var visionRange = 4
+var visionRange = 6
 var FogMap 
 var MainCamera
 var Walls
 var calledStepForLastAction = false
-
+var vision
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -26,6 +26,7 @@ func _ready():
 	MainCamera = get_node("Camera2D")
 	FogMap = get_node("../Fog")
 	Walls = get_node("../Walls")
+	vision = Vision.new(Walls)
 
 func _process(delta):
 	animationTimeElapsed += delta
@@ -34,7 +35,6 @@ func _process(delta):
 		if moveAction == "Up":
 			Core.move(self, destination, 0, -distance)
 			performAction()
-			Core.step()
 		elif moveAction == "Left":
 			Core.move(self, destination, -distance, 0)
 			performAction()
@@ -96,12 +96,9 @@ func step():
 		
 		# Get vision.
 		FogMap.set_cell(x, y, -1)
-		fogMap = Vision.look(Vector2(x, y), visionRange, Walls)
+		fogMap = vision.look(Vector2(x, y), visionRange)
 		for point in fogMap:
 			FogMap.set_cell(point.x, point.y, -1)
-
-		
-	
 	
 			
 func getDestTile():

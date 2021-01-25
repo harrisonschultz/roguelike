@@ -7,18 +7,14 @@ var DebugTileMap
 var rooms = []
 var map = []
 var nodes = []
-var rng = RandomNumberGenerator.new()
 var FogMap
 const wallsWithCollision = [7,8,14,15]
 const MIN_ROOM_SIZE = 8
 const MAX_ROOM_SIZE = 12
 const EXIT_SIZE = 5
 
-enum WallTiles { Door, Wall, WallMissingBricks, WallWithGrate, Crack, Bottom, BottomLeft, BottomRight, Top, TopLeft, TopRight, Left, Right, TopInnerRight, TopInnerLeft, BottomInnerLeft, BottomInnerRight }
-enum Map { Occupied, Edge, Hallway}
-
 func _ready():
-	rng.randomize()
+	Globals.rng.randomize()
 	Floor = get_node("Floor")
 	Walls = get_node("Walls")
 	FogMap = get_node("Fog")
@@ -33,6 +29,7 @@ func move(node, destination: Vector2, x, y):
 		node.position.y += y
 		
 func checkTileToMove(destination):
+	# Wall Collision Check
 	var cell = Floor.get_cell(destination.x, destination.y)
 	if cell > -1:
 		return true
@@ -70,8 +67,8 @@ func initializeMap():
 			FogMap.set_cell(x,y, 0)
 
 func buildFirstRoom():
-	var height = rng.randi_range(MIN_ROOM_SIZE, MAX_ROOM_SIZE)
-	var width = rng.randi_range(MIN_ROOM_SIZE, MAX_ROOM_SIZE)
+	var height = Globals.rng.randi_range(MIN_ROOM_SIZE, MAX_ROOM_SIZE)
+	var width = Globals.rng.randi_range(MIN_ROOM_SIZE, MAX_ROOM_SIZE)
 		
 	# Force only odd numbers for height and width
 	height += height % 2 + 1
@@ -95,8 +92,8 @@ func loadLevel():
 		if rooms.size() >= roomCount:
 			break
 			
-		var height = rng.randi_range(MIN_ROOM_SIZE, MAX_ROOM_SIZE)
-		var width = rng.randi_range(MIN_ROOM_SIZE, MAX_ROOM_SIZE)
+		var height = Globals.rng.randi_range(MIN_ROOM_SIZE, MAX_ROOM_SIZE)
+		var width = Globals.rng.randi_range(MIN_ROOM_SIZE, MAX_ROOM_SIZE)
 		if count >= rooms.size() -1:
 			count -= 1
 		var room = rooms[count]
@@ -113,7 +110,7 @@ func loadLevel():
 					finalExit = e
 			if room.exits[exit] != null && rooms.size() <= roomCount:
 				
-				if !rng.randi_range(0, 3) && (exitExists || !(exit >= finalExit)):
+				if !Globals.rng.randi_range(0, 3) && (exitExists || !(exit >= finalExit)):
 					continue
 				
 				var bottomLeft = Room.getBottomLeftFromExit(room.exits[exit], exit, height, width, EXIT_SIZE)
@@ -146,10 +143,10 @@ func tryToFitRoom(bottomLeft, height, width):
 		return room
 
 func buildRoom(h = 0, w = 0):
-	var height =  rng.randi_range(MIN_ROOM_SIZE, MAX_ROOM_SIZE)
+	var height =  Globals.rng.randi_range(MIN_ROOM_SIZE, MAX_ROOM_SIZE)
 	if h: 
 		height = h
-	var width = rng.randi_range(MIN_ROOM_SIZE, MAX_ROOM_SIZE)
+	var width = Globals.rng.randi_range(MIN_ROOM_SIZE, MAX_ROOM_SIZE)
 	if w:
 		width = w
 	var bottomLeft = findEmptySpace(height, width)
@@ -167,35 +164,35 @@ func buildRoom(h = 0, w = 0):
 		
 		for x in xRange:
 			for y in yRange:
-				changeMapTile(x, y, Map.Occupied)
+				changeMapTile(x, y, Globals.Map.Occupied)
 				# Fill the top of the top wall (top walls are 2 cells tall)
 				if y == topRight.y:
-					changeMapTile(x, y, Map.Edge)
+					changeMapTile(x, y, Globals.Map.Edge)
 					if x == topLeft.x:
-						Walls.set_cell(x, y, WallTiles.TopLeft)
+						Walls.set_cell(x, y, Globals.WallTiles.TopLeft)
 						continue
 					elif x == topRight.x:
-						Walls.set_cell(x, y, WallTiles.TopRight)
+						Walls.set_cell(x, y, Globals.WallTiles.TopRight)
 						continue
 					else:
 						if verticalHallwayStart == x:
 							setHallway(x, y, "up")
-						if changeMapTile(x, y, Map.Edge):
-							Walls.set_cell(x,y, WallTiles.Top)
+						if changeMapTile(x, y, Globals.Map.Edge):
+							Walls.set_cell(x,y, Globals.WallTiles.Top)
 						continue
 						
 				# Bottom Walls
 				elif y == bottomLeft.y:
-					changeMapTile(x, y, Map.Edge)
+					changeMapTile(x, y, Globals.Map.Edge)
 					if x == bottomLeft.x:
-						Walls.set_cell(x, y, WallTiles.BottomLeft)
+						Walls.set_cell(x, y, Globals.WallTiles.BottomLeft)
 						continue
 					elif x == bottomRight.x:
-						Walls.set_cell(x, y, WallTiles.BottomRight)
+						Walls.set_cell(x, y, Globals.WallTiles.BottomRight)
 						continue
 					else:
 						Floor.set_cell(x, y, 1)
-						Walls.set_cell(x, y, WallTiles.Bottom)
+						Walls.set_cell(x, y, Globals.WallTiles.Bottom)
 						continue
 				
 				else:
@@ -204,16 +201,16 @@ func buildRoom(h = 0, w = 0):
 						# Check for adjacent rooms
 						if horizontalHallwayStart == y:
 							setHallway(x, y, "left")
-						if changeMapTile(x, y, Map.Edge):
-							Walls.set_cell(x,y, WallTiles.Left)
+						if changeMapTile(x, y, Globals.Map.Edge):
+							Walls.set_cell(x,y, Globals.WallTiles.Left)
 						continue
 					elif x == topRight.x:
-						changeMapTile(x, y, Map.Edge)
-						Walls.set_cell(x,y, WallTiles.Right)
+						changeMapTile(x, y, Globals.Map.Edge)
+						Walls.set_cell(x,y, Globals.WallTiles.Right)
 						continue
 					# Top Walls
-					elif y == topRight.y + 1 && x > topLeft.x && x < topRight.x && changeMapTile(x, y, Map.Edge):
-						Walls.set_cell(x,y, WallTiles.Wall)
+					elif y == topRight.y + 1 && x > topLeft.x && x < topRight.x && changeMapTile(x, y, Globals.Map.Edge):
+						Walls.set_cell(x,y, Globals.WallTiles.Wall)
 						continue
 					# Everything else
 					else:
@@ -225,7 +222,7 @@ func buildRoom(h = 0, w = 0):
 		buildRoom(height -1, width -1)
 							
 func changeMapTile(x, y, type):
-	if map[x][y] != Map.Hallway:
+	if map[x][y] != Globals.Map.Hallway:
 		map[x][y] = type
 		return true
 	return false
@@ -240,30 +237,30 @@ func setHallway(col, row, direction):
 		rowToCheck = row - 1
 		# Check all spots to add a valid hallway
 		for x in range(col, col + hallWayGirth + 2):
-			if x < 0 || x > map.size() -1 || rowToCheck < 0 || rowToCheck > map[0].size() - 1 || map[x][rowToCheck] != Map.Edge:
+			if x < 0 || x > map.size() -1 || rowToCheck < 0 || rowToCheck > map[0].size() - 1 || map[x][rowToCheck] != Globals.Map.Edge:
 				return false
 				
 	elif direction == 'right':
 		colToCheck = col + 1
 		# Check all spots to add a valid hallway
 		for y in range(row, row + hallWayGirth + 2):
-			if colToCheck < 0 || colToCheck > map.size() -1 || y < 0 || y > map[0].size() - 1 || map[colToCheck][y] != Map.Edge:
+			if colToCheck < 0 || colToCheck > map.size() -1 || y < 0 || y > map[0].size() - 1 || map[colToCheck][y] != Globals.Map.Edge:
 				return false
 					
 	elif direction == 'down':
 		rowToCheck = row + 1
 		# Check all spots to add a valid hallway
 		for x in range(col, col + hallWayGirth + 2):
-			if x < 0 || x > map.size() -1 || rowToCheck < 0 || rowToCheck > map[0].size() - 1 || map[x][rowToCheck] != Map.Edge:
+			if x < 0 || x > map.size() -1 || rowToCheck < 0 || rowToCheck > map[0].size() - 1 || map[x][rowToCheck] != Globals.Map.Edge:
 				return false
 	elif direction == 'left':
 		colToCheck = col -1
 		# Check all spots to add a valid hallway
 		for y in range(row, row + hallWayGirth + 2):
-			if colToCheck < 0 || colToCheck > map.size() -1 || y < 0 || y > map[0].size() - 1 || map[colToCheck][y] != Map.Edge:
+			if colToCheck < 0 || colToCheck > map.size() -1 || y < 0 || y > map[0].size() - 1 || map[colToCheck][y] != Globals.Map.Edge:
 				return false
 		
-	if map[colToCheck][rowToCheck] == Map.Hallway:
+	if map[colToCheck][rowToCheck] == Globals.Map.Hallway:
 			return true
 	
 	if direction == 'up':
@@ -272,29 +269,29 @@ func setHallway(col, row, direction):
 		var bottomRight = Vector2(col + hallWayGirth, row)
 		var bottomLeft = Vector2(col, row)
 		
-		if map[topRight.x][topRight.y] == Map.Hallway:
+		if map[topRight.x][topRight.y] == Globals.Map.Hallway:
 			return true
-		elif map[topLeft.x][topLeft.y] == Map.Hallway:
+		elif map[topLeft.x][topLeft.y] == Globals.Map.Hallway:
 			return true
-		elif map[bottomRight.x][bottomRight.y] == Map.Hallway:
+		elif map[bottomRight.x][bottomRight.y] == Globals.Map.Hallway:
 			return true
-		elif map[bottomLeft.x][bottomRight.y] == Map.Hallway:
+		elif map[bottomLeft.x][bottomRight.y] == Globals.Map.Hallway:
 			return true
 		
-		Walls.set_cell(topRight.x, topRight.y,  WallTiles.BottomInnerLeft)
-		Walls.set_cell(topLeft.x, topLeft.y, WallTiles.BottomInnerRight)
-		Walls.set_cell(bottomRight.x, bottomRight.y,WallTiles.TopInnerLeft)
-		Walls.set_cell(bottomLeft.x, bottomLeft.y, WallTiles.TopInnerRight)
+		Walls.set_cell(topRight.x, topRight.y,  Globals.WallTiles.BottomInnerLeft)
+		Walls.set_cell(topLeft.x, topLeft.y, Globals.WallTiles.BottomInnerRight)
+		Walls.set_cell(bottomRight.x, bottomRight.y,Globals.WallTiles.TopInnerLeft)
+		Walls.set_cell(bottomLeft.x, bottomLeft.y, Globals.WallTiles.TopInnerRight)
 		
-		map[topRight.x][topRight.y] = Map.Hallway
-		map[topLeft.x][topLeft.y] = Map.Hallway
-		map[bottomRight.x][bottomRight.y] = Map.Hallway
-		map[bottomLeft.x][bottomLeft.y] = Map.Hallway
+		map[topRight.x][topRight.y] = Globals.Map.Hallway
+		map[topLeft.x][topLeft.y] = Globals.Map.Hallway
+		map[bottomRight.x][bottomRight.y] = Globals.Map.Hallway
+		map[bottomLeft.x][bottomLeft.y] = Globals.Map.Hallway
 		
 		for x in range(bottomLeft.x+1, topRight.x):
 			for y in range(topLeft.y, bottomLeft.y +2):
 				print(str(x)+", "+str(y))
-				map[x][y] = Map.Hallway
+				map[x][y] = Globals.Map.Hallway
 				Walls.set_cell(x, y, -1)
 				Floor.set_cell(x, y, 1)
 				
@@ -304,39 +301,39 @@ func setHallway(col, row, direction):
 		var bottomRight= Vector2(col + hallWayLength, row + hallWayGirth)
 		var bottomLeft= Vector2(col , row + hallWayGirth)
 		
-		if map[topRight.x][topRight.y] == Map.Hallway:
+		if map[topRight.x][topRight.y] == Globals.Map.Hallway:
 			return true
-		if map[topLeft.x][topLeft.y] == Map.Hallway:
+		if map[topLeft.x][topLeft.y] == Globals.Map.Hallway:
 			return true
-		elif map[bottomRight.x][bottomRight.y] == Map.Hallway:
+		elif map[bottomRight.x][bottomRight.y] == Globals.Map.Hallway:
 			return true
-		elif map[bottomLeft.x][bottomRight.y] == Map.Hallway:
+		elif map[bottomLeft.x][bottomRight.y] == Globals.Map.Hallway:
 			return true
-		elif map[topLeft.x][topLeft.y + 1] == Map.Hallway:
+		elif map[topLeft.x][topLeft.y + 1] == Globals.Map.Hallway:
 			return true
-		elif map[topRight.x][topRight.y + 1] == Map.Hallway:
+		elif map[topRight.x][topRight.y + 1] == Globals.Map.Hallway:
 			return true
 		
-		Walls.set_cell(topRight.x, topRight.y, WallTiles.TopInnerRight)
-		Walls.set_cell(topLeft.x, topLeft.y, WallTiles.TopInnerLeft)
-		Walls.set_cell(topLeft.x, topLeft.y +1, WallTiles.Wall)
-		Walls.set_cell(topRight.x, topRight.y +1, WallTiles.Wall)
+		Walls.set_cell(topRight.x, topRight.y, Globals.WallTiles.TopInnerRight)
+		Walls.set_cell(topLeft.x, topLeft.y, Globals.WallTiles.TopInnerLeft)
+		Walls.set_cell(topLeft.x, topLeft.y +1, Globals.WallTiles.Wall)
+		Walls.set_cell(topRight.x, topRight.y +1, Globals.WallTiles.Wall)
 		
-		map[topRight.x][topRight.y] = Map.Hallway
-		map[topLeft.x][topLeft.y] = Map.Hallway
-		map[bottomRight.x][bottomRight.y] = Map.Hallway
-		map[bottomLeft.x][bottomRight.y] = Map.Hallway
-		map[topLeft.x][topLeft.y + 1] = Map.Hallway
-		map[topRight.x][topRight.y + 1] = Map.Hallway
+		map[topRight.x][topRight.y] = Globals.Map.Hallway
+		map[topLeft.x][topLeft.y] = Globals.Map.Hallway
+		map[bottomRight.x][bottomRight.y] = Globals.Map.Hallway
+		map[bottomLeft.x][bottomRight.y] = Globals.Map.Hallway
+		map[topLeft.x][topLeft.y + 1] = Globals.Map.Hallway
+		map[topRight.x][topRight.y + 1] = Globals.Map.Hallway
 		
 		for x in range(bottomLeft.x, topRight.x+1):
 			for y in range(topLeft.y + 2, bottomLeft.y + 1):
-				map[x][y] = Map.Hallway
+				map[x][y] = Globals.Map.Hallway
 				Walls.set_cell(x, y, -1)
 				Floor.set_cell(x, y, 1)
 				
-		Walls.set_cell(bottomRight.x, bottomRight.y, WallTiles.BottomInnerRight)
-		Walls.set_cell(bottomLeft.x, bottomLeft.y, WallTiles.BottomInnerLeft)
+		Walls.set_cell(bottomRight.x, bottomRight.y, Globals.WallTiles.BottomInnerRight)
+		Walls.set_cell(bottomLeft.x, bottomLeft.y, Globals.WallTiles.BottomInnerLeft)
 				
 	elif direction == 'down':
 		var bottomRight = Vector2(col + hallWayGirth, row + hallWayLength)
@@ -344,10 +341,10 @@ func setHallway(col, row, direction):
 		var topRight= Vector2(col + hallWayGirth, row)
 		var topLeft = Vector2(col, row)
 		
-		Walls.set_cell(topRight.x, topRight.y, WallTiles.BottomInnerRight)
-		Walls.set_cell(topLeft.x, topLeft.y, WallTiles.BottomInnerLeft)
-		Walls.set_cell(bottomRight.x, bottomRight.y, WallTiles.TopInnerRight)
-		Walls.set_cell(bottomLeft.x, bottomLeft.y, WallTiles.TopInnerLeft)
+		Walls.set_cell(topRight.x, topRight.y, Globals.WallTiles.BottomInnerRight)
+		Walls.set_cell(topLeft.x, topLeft.y, Globals.WallTiles.BottomInnerLeft)
+		Walls.set_cell(bottomRight.x, bottomRight.y, Globals.WallTiles.TopInnerRight)
+		Walls.set_cell(bottomLeft.x, bottomLeft.y, Globals.WallTiles.TopInnerLeft)
 		
 		for x in range(bottomLeft.x, topRight.x):
 			for y in range(topLeft.y, bottomLeft.y):
@@ -358,39 +355,39 @@ func setHallway(col, row, direction):
 		var bottomRight = Vector2(col, row + hallWayGirth)
 		var bottomLeft = Vector2(col - hallWayLength, row + hallWayGirth)
 		
-		if map[topRight.x][topRight.y] == Map.Hallway:
+		if map[topRight.x][topRight.y] == Globals.Map.Hallway:
 			return true
-		if map[topLeft.x][topLeft.y] == Map.Hallway:
+		if map[topLeft.x][topLeft.y] == Globals.Map.Hallway:
 			return true
-		elif map[bottomRight.x][bottomRight.y] == Map.Hallway:
+		elif map[bottomRight.x][bottomRight.y] == Globals.Map.Hallway:
 			return true
-		elif map[bottomLeft.x][bottomRight.y] == Map.Hallway:
+		elif map[bottomLeft.x][bottomRight.y] == Globals.Map.Hallway:
 			return true
-		elif map[topLeft.x][topLeft.y + 1] == Map.Hallway:
+		elif map[topLeft.x][topLeft.y + 1] == Globals.Map.Hallway:
 			return true
-		elif map[topRight.x][topRight.y + 1] == Map.Hallway:
+		elif map[topRight.x][topRight.y + 1] == Globals.Map.Hallway:
 			return true
 		
-		Walls.set_cell(topRight.x, topRight.y, WallTiles.TopInnerRight)
-		Walls.set_cell(topLeft.x, topLeft.y, WallTiles.TopInnerLeft)
-		Walls.set_cell(topLeft.x, topLeft.y +1, WallTiles.Wall)
-		Walls.set_cell(topRight.x, topRight.y +1, WallTiles.Wall)
+		Walls.set_cell(topRight.x, topRight.y, Globals.WallTiles.TopInnerRight)
+		Walls.set_cell(topLeft.x, topLeft.y, Globals.WallTiles.TopInnerLeft)
+		Walls.set_cell(topLeft.x, topLeft.y +1, Globals.WallTiles.Wall)
+		Walls.set_cell(topRight.x, topRight.y +1, Globals.WallTiles.Wall)
 		
-		map[topRight.x][topRight.y] = Map.Hallway
-		map[topLeft.x][topLeft.y] = Map.Hallway
-		map[bottomRight.x][bottomRight.y] = Map.Hallway
-		map[bottomLeft.x][bottomRight.y] = Map.Hallway
-		map[topLeft.x][topLeft.y + 1] = Map.Hallway
-		map[topRight.x][topRight.y + 1] = Map.Hallway
+		map[topRight.x][topRight.y] = Globals.Map.Hallway
+		map[topLeft.x][topLeft.y] = Globals.Map.Hallway
+		map[bottomRight.x][bottomRight.y] = Globals.Map.Hallway
+		map[bottomLeft.x][bottomRight.y] = Globals.Map.Hallway
+		map[topLeft.x][topLeft.y + 1] = Globals.Map.Hallway
+		map[topRight.x][topRight.y + 1] = Globals.Map.Hallway
 		
 		for x in range(bottomLeft.x, topRight.x+1):
 			for y in range(topLeft.y + 2, bottomLeft.y + 1):
-				map[x][y] = Map.Hallway
+				map[x][y] = Globals.Map.Hallway
 				Walls.set_cell(x, y, -1)
 				Floor.set_cell(x, y, 1)
 				
-		Walls.set_cell(bottomRight.x, bottomRight.y, WallTiles.BottomInnerRight)
-		Walls.set_cell(bottomLeft.x, bottomLeft.y, WallTiles.BottomInnerLeft)
+		Walls.set_cell(bottomRight.x, bottomRight.y, Globals.WallTiles.BottomInnerRight)
+		Walls.set_cell(bottomLeft.x, bottomLeft.y, Globals.WallTiles.BottomInnerLeft)
 	return true
 	
 func findEmptySpace(height, width):

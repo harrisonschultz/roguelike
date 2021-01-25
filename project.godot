@@ -9,6 +9,11 @@
 config_version=4
 
 _global_script_classes=[ {
+"base": "Unit",
+"class": "Enemy",
+"language": "GDScript",
+"path": "res://Enemies/Enemy.gd"
+}, {
 "base": "Object",
 "class": "Room",
 "language": "GDScript",
@@ -24,15 +29,22 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://ShadowLine.gd"
 }, {
+"base": "AnimatedSprite",
+"class": "Unit",
+"language": "GDScript",
+"path": "res://Enemies/Unit.gd"
+}, {
 "base": "Node",
 "class": "Vision",
 "language": "GDScript",
 "path": "res://Vision.gd"
 } ]
 _global_script_class_icons={
+"Enemy": "",
 "Room": "",
 "Shadow": "",
 "ShadowLine": "",
+"Unit": "",
 "Vision": ""
 }
 
@@ -46,6 +58,7 @@ config/icon="res://icon.png"
 [autoload]
 
 Globals="*res://Globals.gd"
+RNG="*res://RNG.gd"
 
 [display]
 

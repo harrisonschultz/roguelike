@@ -16,17 +16,18 @@ func isFullShadow():
 func add (shadow: Shadow):
 	var index = 0
 	# Figure out where to slot the new shadow in the list.
-	for index in range(shadows.size()):
-		if shadows[index].start >= shadow.start: 
+	for i in range(shadows.size()):
+		if shadows[i].start >= shadow.start: 
 			break
+		index +=1
 			
 	# The new shadow is going here. See if it overlaps the
 	# previous or next.
-	var overlappingPrevious;
+	var overlappingPrevious
 	if index > 0 && shadows[index - 1].end > shadow.start:
 		overlappingPrevious = shadows[index - 1]
 	
-	var overlappingNext;
+	var overlappingNext
 	if index < shadows.size() && shadows[index].start < shadow.end:
 		overlappingNext = shadows[index]
 
@@ -46,6 +47,3 @@ func add (shadow: Shadow):
 		else:
 			# Does not overlap anything, so insert.
 			shadows.insert(index, shadow);
-
-
-
