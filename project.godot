@@ -8,15 +8,39 @@
 
 config_version=4
 
-_global_script_classes=[  ]
+_global_script_classes=[ {
+"base": "Object",
+"class": "Room",
+"language": "GDScript",
+"path": "res://Room.gd"
+}, {
+"base": "Node",
+"class": "Shadow",
+"language": "GDScript",
+"path": "res://Shadow.gd"
+}, {
+"base": "Node",
+"class": "ShadowLine",
+"language": "GDScript",
+"path": "res://ShadowLine.gd"
+}, {
+"base": "Node",
+"class": "Vision",
+"language": "GDScript",
+"path": "res://Vision.gd"
+} ]
 _global_script_class_icons={
-
+"Room": "",
+"Shadow": "",
+"ShadowLine": "",
+"Vision": ""
 }
 
 [application]
 
 config/name="roguelike"
 run/main_scene="res://Root.tscn"
+boot_splash/bg_color=Color( 0.0235294, 0.0235294, 0.0235294, 1 )
 config/icon="res://icon.png"
 
 [autoload]
@@ -27,7 +51,7 @@ Globals="*res://Globals.gd"
 
 window/size/width=640
 window/size/height=360
-window/stretch/mode="viewport"
+window/stretch/mode="2d"
 
 [input]
 
@@ -51,12 +75,18 @@ Right={
 "events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":68,"unicode":0,"echo":false,"script":null)
  ]
 }
+reset={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":88,"unicode":0,"echo":false,"script":null)
+ ]
+}
 
 [rendering]
 
 quality/2d/use_pixel_snap=true
+environment/default_clear_color=Color( 0.121569, 0.121569, 0.121569, 1 )
 environment/default_environment="res://default_env.tres"
 
 [world]
 
-2d/cell_size=32
+2d/cell_size=16
