@@ -73,13 +73,16 @@ func _process(delta):
 		
 
 func step():
-	print('Unit step')
 	var action = determineAction()
 	
 func findPathToPlayer():
 	var astar = AStar2D.new()
 	var visibleTiles = []
 	var pos = positionToTile(self.position)
+	var myPosition = positionToTile(self.position)
+	# Add self to graph
+	astar.add_point(positionToId(myPosition), myPosition, 1)
+	
 	# Loop through all tiles in vision range
 	# Determine if it is a walkable tile
 	for octant in 8:
@@ -94,18 +97,17 @@ func findPathToPlayer():
 				var position = pos + vision.transformOctant(x, y, octant)
 				if Core.checkTileToMove(position):
 					visibleTiles.append(position)
-					astar.add_point(positionToId(position),Vector2(position.x, position.y), 1)
+					astar.add_point(positionToId(position), Vector2(position.x, position.y), 1)
 					
 	# Determine if player is standing on a tile in aggro range
 	var tilePlayerPosition = positionToTile(player.position)
-	var myPosition = positionToTile(self.position)
+	
 	for tile in visibleTiles:
 		if tile == tilePlayerPosition:
 			lastKnownPlayerPosition = tilePlayerPosition
 			break;
 	if lastKnownPlayerPosition: 
-		astar.connect_points(positionToId(myPosition), positionToId(lastKnownPlayerPosition))
-		var points = astar.get_points()
+		#astar.connect_points(positionToId(myPosition), positionToId(lastKnownPlayerPosition))
 		return astar.get_point_path(positionToId(myPosition), positionToId(lastKnownPlayerPosition))
 	else:
 		return null
@@ -125,7 +127,6 @@ func determineAction():
 		move(pathToPlayer[1])
 	else:
 		wander()
-
 	
 func wander():
 	if lastWanderMove > 3:

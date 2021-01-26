@@ -47,7 +47,6 @@ func step():
 	var nodes = EnemyRoot.get_children()
 	Player.step()
 	for node in nodes:
-		print(node.visionRange)
 		node.step()
 		
 func reloadLevel():

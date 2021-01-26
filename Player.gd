@@ -78,7 +78,6 @@ func move(direction):
 				
 				
 func step():
-	print('Player Step')
 	if !calledStepForLastAction:
 		if !destination:
 			destination = Vector2(round(self.position.x / Globals.tile_size),round(self.position.y / Globals.tile_size))
