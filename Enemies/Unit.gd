@@ -52,9 +52,7 @@ func getDestTile():
 
 func _process(delta):
 	animationTimeElapsed += delta
-	
-	
-	if moveAction && animationTimeElapsed < animationDurations[State.Move]:
+	if moveAction != null && animationTimeElapsed < animationDurations[State.Move]:
 		var distance = delta * movementSpeed
 		if moveAction == Globals.Directions.Up:
 			Core.move(self, destination,Vector2( 0, -distance))
@@ -78,37 +76,59 @@ func step():
 func findPathToPlayer():
 	var astar = AStar2D.new()
 	var visibleTiles = []
-	var pos = positionToTile(self.position)
 	var myPosition = positionToTile(self.position)
-	# Add self to graph
-	astar.add_point(positionToId(myPosition), myPosition, 1)
+	var visionVector = Vector2(visionRange, visionRange)
+	var visionTopLeft = myPosition - visionVector
+	
+	# Add additional point for self position
+	var visionBottomRight = myPosition + visionVector + Vector2(1,1)
 	
 	# Loop through all tiles in vision range
 	# Determine if it is a walkable tile
-	for octant in 8:
-		for y in range(1, visionRange):
-			var horizontalRange = y + 1
-			if horizontalRange == visionRange:
-				horizontalRange -= 2
-			for x in horizontalRange:
-				# Skip the last value on each odd octant
-				if !(octant % 2) && (x == y || x == 0):
-					continue
-				var position = pos + vision.transformOctant(x, y, octant)
-				if Core.checkTileToMove(position):
-					visibleTiles.append(position)
-					astar.add_point(positionToId(position), Vector2(position.x, position.y), 1)
+	for y in range(visionTopLeft.y, visionBottomRight.y):
+		for x in range(visionTopLeft.x, visionBottomRight.x):
+			var position =  Vector2(x,y)
+			if Core.checkTileToMove(position):
+				visibleTiles.append(position)
+				astar.add_point(positionToId(position), position, 1)
+			else:
+				visibleTiles.append(null)
 					
-	# Determine if player is standing on a tile in aggro range
 	var tilePlayerPosition = positionToTile(player.position)
-	
-	for tile in visibleTiles:
+	for index in range(visibleTiles.size()):
+		var tile = visibleTiles[index]
+		# Determine if player is standing on a tile in aggro range
 		if tile == tilePlayerPosition:
 			lastKnownPlayerPosition = tilePlayerPosition
 			break;
+			
+	# find path to player if player is in aggro range
 	if lastKnownPlayerPosition: 
-		#astar.connect_points(positionToId(myPosition), positionToId(lastKnownPlayerPosition))
-		return astar.get_point_path(positionToId(myPosition), positionToId(lastKnownPlayerPosition))
+		for index in range(visibleTiles.size()):
+			var tile = visibleTiles[index]
+			
+			# if invalid tile skip
+			if !tile:
+				continue
+			
+			# Connect a point to all of its neighbors in cardinal directions
+			var id = positionToId(tile)
+			var rowLength = (visionRange * 2 + 1)
+			# Add Up
+			if index - rowLength > 0 && visibleTiles[index - rowLength] != null:
+				astar.connect_points(positionToId(tile), positionToId(visibleTiles[index - rowLength]))
+			# Add Right
+			if (index + 1) % rowLength != 0 && index + 1 < visibleTiles.size() && visibleTiles[index + 1] != null:
+				astar.connect_points(positionToId(tile), positionToId(visibleTiles[index + 1]))
+			# Add Left
+			if (index - 1) % rowLength != 0 && index - 1 > -1 && visibleTiles[index - 1] != null:
+				astar.connect_points(positionToId(tile), positionToId(visibleTiles[index - 1]))
+			# Add down
+			if index + rowLength < visibleTiles.size() && visibleTiles[index + rowLength] != null:
+				astar.connect_points(positionToId(tile), positionToId(visibleTiles[index + rowLength]))
+			
+		var path = astar.get_point_path(positionToId(myPosition), positionToId(lastKnownPlayerPosition))
+		return path
 	else:
 		return null
 		
@@ -124,7 +144,9 @@ func positionToTile(pos: Vector2):
 func determineAction():
 	var pathToPlayer = findPathToPlayer()
 	if pathToPlayer:
-		move(pathToPlayer[1])
+		var adjacent = pathToPlayer.size() <= 1
+		if !adjacent:
+			move(pathToPlayer[1])
 	else:
 		wander()
 	
@@ -152,6 +174,7 @@ func determineMoveDirection(destination):
 
 func move(destination):
 	moveAction = determineMoveDirection(destination)
+	var now = positionToTile(self.position)
 	getDestTile()
 	changeState(State.Move)
 	
