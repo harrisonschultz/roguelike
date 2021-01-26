@@ -1,14 +1,13 @@
 extends AnimatedSprite
 
-
-enum State { Idle, Run }
-const stateAnimations = ["Idle", "Run"]
+enum State { Idle, Move }
+const stateAnimations = ["Idle", "Move"]
 const animationDuration = [10, 0.3]
 
 var animationTimeElapsed: float = 0;
 var isActing: bool = false
 var moveAction = false
-var movementSpeed: float
+var movementSpeed: float = Globals.tile_size / animationDuration[State.Move]
 var state = State.Idle
 var destination
 var Core
@@ -27,24 +26,25 @@ func _ready():
 	FogMap = get_node("../Fog")
 	Walls = get_node("../Walls")
 	vision = Vision.new(Walls)
+	self.play('Idle')
 
 func _process(delta):
 	animationTimeElapsed += delta
-	if moveAction && animationTimeElapsed <  animationDuration[State.Run]:
+	if moveAction && animationTimeElapsed <  animationDuration[State.Move]:
 		var distance = delta * movementSpeed
 		if moveAction == "Up":
-			Core.move(self, destination, 0, -distance)
+			Core.move(self, destination, Vector2(0, -distance))
 			performAction()
 		elif moveAction == "Left":
-			Core.move(self, destination, -distance, 0)
+			Core.move(self, destination, Vector2( -distance, 0))
 			performAction()
 		elif moveAction == "Down":
-			Core.move(self, destination, 0, distance)
+			Core.move(self, destination,  Vector2(0, distance))
 			performAction()
 		elif moveAction == "Right":
-			Core.move(self, destination, distance, 0)
+			Core.move(self, destination, Vector2(distance, 0))
 			performAction()
-	if state == State.Run && animationTimeElapsed > animationDuration[State.Run]:
+	if state == State.Move && animationTimeElapsed > animationDuration[State.Move]:
 		finished_move()
 		moveAction = null
 		changeState(State.Idle)
@@ -57,33 +57,28 @@ func performAction():
 func _input(event):
 	if state == State.Idle:
 		if event.is_action("Up"):
-			moveAction = "Up"
-			getDestTile()
-			if Core.checkTileToMove(destination):
-				changeState(State.Run)
+			move("Up")
 			
 		elif event.is_action("Left"):
 			flip_h = true
-			moveAction = "Left"
-			getDestTile()
-			if Core.checkTileToMove(destination):
-				changeState(State.Run)
+			move("Left")
 		
 		elif event.is_action("Down"):
-			moveAction = "Down"
-			getDestTile()
-			if Core.checkTileToMove(destination):
-				changeState(State.Run)
+			move("Down")
 		
 		elif event.is_action("Right"):
 			flip_h = false
-			moveAction = "Right"
-			getDestTile()
-			if Core.checkTileToMove(destination):
-				changeState(State.Run)
+			move("Right")
+				
+func move(direction):
+	moveAction = direction
+	getDestTile()
+	if Core.checkTileToMove(destination):
+		changeState(State.Move)
 				
 				
 func step():
+	print('Player Step')
 	if !calledStepForLastAction:
 		if !destination:
 			destination = Vector2(round(self.position.x / Globals.tile_size),round(self.position.y / Globals.tile_size))

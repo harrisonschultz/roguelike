@@ -31,6 +31,8 @@ func look(pos: Vector2, radius: int):
 			if horizontalRange == radius:
 				horizontalRange -= 2
 			for x in horizontalRange:
+				if !(octant % 2) && (x == y || x == 0):
+					continue
 				
 				# todo: check bounds x
 				var position = pos + transformOctant(x, y, octant)

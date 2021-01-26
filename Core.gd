@@ -6,12 +6,14 @@ var Player
 var DebugTileMap
 var rooms = []
 var map = []
-var nodes = []
+var EnemyRoot
 var FogMap
 const wallsWithCollision = [7,8,14,15]
 const MIN_ROOM_SIZE = 8
 const MAX_ROOM_SIZE = 12
 const EXIT_SIZE = 5
+
+var Slime = load("res://Enemies/Slime/Slime.tscn")
 
 func _ready():
 	Globals.rng.randomize()
@@ -20,13 +22,14 @@ func _ready():
 	FogMap = get_node("Fog")
 	DebugTileMap = get_node("Debug")
 	Player = get_node('Player')
+	EnemyRoot = get_node("EnemyRoot")
 	loadLevel()
 	step()
 
-func move(node, destination: Vector2, x, y):
+func move(node, destination: Vector2, point):
 	if checkTileToMove(destination):
-		node.position.x += x
-		node.position.y += y
+		node.position += point
+
 		
 func checkTileToMove(destination):
 	# Wall Collision Check
@@ -41,8 +44,10 @@ func _input(event):
 		reloadLevel()
 		
 func step():
+	var nodes = EnemyRoot.get_children()
 	Player.step()
 	for node in nodes:
+		print(node.visionRange)
 		node.step()
 		
 func reloadLevel():
@@ -90,8 +95,7 @@ func loadLevel():
 	var count = 1;
 	while rooms.size() < roomCount:
 		if rooms.size() >= roomCount:
-			break
-			
+			break	
 		var height = Globals.rng.randi_range(MIN_ROOM_SIZE, MAX_ROOM_SIZE)
 		var width = Globals.rng.randi_range(MIN_ROOM_SIZE, MAX_ROOM_SIZE)
 		if count >= rooms.size() -1:
@@ -123,12 +127,27 @@ func loadLevel():
 					rooms.append(connectingRoom)
 					count +=1
 					exitExists = true
+					
+					if rooms.size() == 2:
+						# Add enemies to room
+						var slime = Slime.instance()
+						slime.init(EnemyDetails.enemies['slime'], getRandomRoomLocation(bottomLeft,height, width))
+						EnemyRoot.add_child(slime)
 
 		
 	# DEBUG
 	for x in range(map.size()):
 		for y in range(map[x].size()):
 			DebugTileMap.set_cell(x,y, map[x][y])
+			
+func getRandomRoomLocation(bottomLeft, height, width):
+	bottomLeft = bottomLeft * Globals.tile_size
+	height = (height - 3) * Globals.tile_size
+	width = (width - 3) * Globals.tile_size
+	var x = Globals.rng.randi_range(bottomLeft.x, bottomLeft.x + width)
+	var y = Globals.rng.randi_range(bottomLeft.y, bottomLeft.y - height)
+	var loc = Vector2(round(x),round(y))
+	return loc
 			
 func tryToFitRoom(bottomLeft, height, width):
 	if height < MIN_ROOM_SIZE || width < MIN_ROOM_SIZE:
@@ -160,7 +179,6 @@ func buildRoom(h = 0, w = 0):
 		var horizontalHallwayStart = round((bottomLeft.y - topLeft.y) / 2) + topLeft.y -2
 		var yRange = range(topRight.y, bottomRight.y + 1)
 		var xRange = range(topLeft.x, topRight.x + 1)
-		
 		
 		for x in xRange:
 			for y in yRange:
