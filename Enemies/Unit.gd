@@ -2,7 +2,7 @@ extends AnimatedSprite
 
 class_name Unit
 
-enum State { Idle, Move }
+enum State { Idle, Move, Attack }
 
 var animationTimeElapsed: float = 0;
 var isActing: bool = false
@@ -20,6 +20,7 @@ var attackRange
 var player
 var lastKnownPlayerPosition
 var lastWanderMove = 0
+var previousPosition
 
 func _ready():
 	var Root = get_tree().get_root()
@@ -52,22 +53,43 @@ func getDestTile():
 
 func _process(delta):
 	animationTimeElapsed += delta
-	if moveAction != null && animationTimeElapsed < animationDurations[State.Move]:
+	if state == State.Move && moveAction && animationTimeElapsed < animationDurations[State.Move]:
 		var distance = delta * movementSpeed
-		if moveAction == Globals.Directions.Up:
-			Core.move(self, destination,Vector2( 0, -distance))
-		elif moveAction == Globals.Directions.Left:
-			self.flip_h = true
-			Core.move(self, destination, Vector2(-distance, 0))
-		elif moveAction == Globals.Directions.Down:
-			Core.move(self, destination, Vector2(0, distance))
-		elif moveAction == Globals.Directions.Right:
-			self.flip_h = false
+		if moveAction ==  Globals.Directions.Up:
+			Core.move(self, destination, Vector2(0, -distance))
+		elif moveAction ==  Globals.Directions.Right:
 			Core.move(self, destination, Vector2(distance, 0))
+		elif moveAction ==  Globals.Directions.Down:
+			Core.move(self, destination, Vector2(0, distance))
+		elif moveAction ==  Globals.Directions.Left:
+			Core.move(self, destination, Vector2( -distance, 0))
 	if state == State.Move && animationTimeElapsed > animationDurations[State.Move]:
-		finished_move()
-		moveAction = null
-		changeState(State.Idle)
+		finishedMove()
+	if state == State.Attack && moveAction && animationTimeElapsed < animationDurations[State.Attack]:
+		var distance = delta * movementSpeed
+		var pastHalf = animationTimeElapsed > animationDurations[State.Attack] /2
+		if moveAction ==  Globals.Directions.Up:
+			if (pastHalf):
+				Core.move(self, destination, Vector2(0, distance))
+			else:
+				Core.move(self, destination, Vector2(0, -distance))
+		elif moveAction ==  Globals.Directions.Right:
+			if (pastHalf):
+				Core.move(self, destination, Vector2(-distance, 0))
+			else:
+				Core.move(self, destination, Vector2(distance, 0))
+		elif moveAction ==  Globals.Directions.Down:
+			if (pastHalf):
+				Core.move(self, destination,  Vector2(0, -distance))
+			else:
+				Core.move(self, destination,  Vector2(0, distance))
+		elif moveAction ==  Globals.Directions.Left:
+			if (pastHalf):
+				Core.move(self, destination, Vector2( distance, 0))
+			else:
+				Core.move(self, destination, Vector2( -distance, 0))
+	if state == State.Attack && animationTimeElapsed > animationDurations[State.Attack]:
+		finishedAttack()
 		
 
 func step():
@@ -76,9 +98,11 @@ func step():
 func findPathToPlayer():
 	var astar = AStar2D.new()
 	var visibleTiles = []
-	var myPosition = positionToTile(self.position)
+	var myPosition = Core.worldToMap(self.position)
 	var visionVector = Vector2(visionRange, visionRange)
 	var visionTopLeft = myPosition - visionVector
+	var tilePlayerPosition = Core.worldToMap(player.position)
+	var target = null
 	
 	# Add additional point for self position
 	var visionBottomRight = myPosition + visionVector + Vector2(1,1)
@@ -87,14 +111,14 @@ func findPathToPlayer():
 	# Determine if it is a walkable tile
 	for y in range(visionTopLeft.y, visionBottomRight.y):
 		for x in range(visionTopLeft.x, visionBottomRight.x):
-			var position =  Vector2(x,y)
-			if Core.checkTileToMove(position):
+			var position = Vector2(x,y)
+			if position == myPosition || Core.checkTileForPath(position) || position == lastKnownPlayerPosition || position == tilePlayerPosition:
 				visibleTiles.append(position)
 				astar.add_point(positionToId(position), position, 1)
 			else:
 				visibleTiles.append(null)
 					
-	var tilePlayerPosition = positionToTile(player.position)
+	
 	for index in range(visibleTiles.size()):
 		var tile = visibleTiles[index]
 		# Determine if player is standing on a tile in aggro range
@@ -136,17 +160,14 @@ func positionToId(pos: Vector2):
 	return int(str(pos.x) + str(pos.y))
 	
 			
-func positionToTile(pos: Vector2):
-	var x = round(pos.x / Globals.tile_size)
-	var y = round(pos.y / Globals.tile_size)
-	return Vector2(x,y)
-		
 func determineAction():
 	var pathToPlayer = findPathToPlayer()
 	if pathToPlayer:
-		var adjacent = pathToPlayer.size() <= 1
+		var adjacent = pathToPlayer.size() <= 2
 		if !adjacent:
 			move(pathToPlayer[1])
+		elif pathToPlayer.size() == 1:
+			attack(pathToPlayer[1])
 	else:
 		wander()
 	
@@ -161,7 +182,7 @@ func wander():
 		lastWanderMove += 1
 		
 func determineMoveDirection(destination):
-	var pos = positionToTile(self.position)
+	var pos = Core.worldToMap(self.position)
 	if pos.y > destination.y:
 		return Globals.Directions.Up
 	elif pos.x < destination.x:
@@ -174,7 +195,13 @@ func determineMoveDirection(destination):
 
 func move(destination):
 	moveAction = determineMoveDirection(destination)
-	var now = positionToTile(self.position)
+	var now = Core.worldToMap(self.position)
+	getDestTile()
+	changeState(State.Move)
+
+func attack(destination):
+	previousPosition = self.position
+	moveAction = determineMoveDirection(destination)
 	getDestTile()
 	changeState(State.Move)
 	
@@ -184,8 +211,16 @@ func changeState(newState):
 	state = newState
 	self.play(stateAnimations[newState])
 	
-func finished_move():
-	# set the player position to the closest center of a tile
+	
+func finishedMove():
+	moveAction = null
+	# set the position to the closest center of a tile
 	# find nearest divisor of the tile_size
 	self.position.x = round(self.position.x / Globals.tile_size) * Globals.tile_size
 	self.position.y = round(self.position.y / Globals.tile_size) * Globals.tile_size
+	changeState(State.Idle)
+
+func finishedAttack():
+	moveAction = null
+	self.position = previousPosition
+	changeState(State.Idle)

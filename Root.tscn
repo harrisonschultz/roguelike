@@ -566,15 +566,15 @@
 
 [sub_resource type="SpriteFrames" id=4]
 animations = [ {
-"frames": [ ExtResource( 23 ), ExtResource( 26 ), ExtResource( 30 ), ExtResource( 31 ), ExtResource( 34 ), ExtResource( 33 ) ],
-"loop": false,
-"name": "Move",
-"speed": 10.0
-}, {
 "frames": [ ExtResource( 25 ), ExtResource( 32 ), ExtResource( 24 ), ExtResource( 27 ), ExtResource( 28 ), ExtResource( 29 ) ],
 "loop": true,
 "name": "Idle",
 "speed": 8.0
+}, {
+"frames": [ ExtResource( 23 ), ExtResource( 26 ), ExtResource( 30 ), ExtResource( 31 ), ExtResource( 34 ), ExtResource( 33 ) ],
+"loop": false,
+"name": "Move",
+"speed": 10.0
 } ]
 
 [sub_resource type="TileSet" id=5]

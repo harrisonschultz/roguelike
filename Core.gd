@@ -27,14 +27,53 @@ func _ready():
 	step()
 
 func move(node, destination: Vector2, point):
-	if checkTileToMove(destination):
-		node.position += point
+	node.position += point
 
+func worldToMap(pos: Vector2):
+	var x = round(pos.x / Globals.tile_size)
+	var y = round(pos.y / Globals.tile_size)
+	return Vector2(x,y)
+	
+func whatIsOnTile(tile):
+	var nodes = EnemyRoot.get_children()
+	nodes.append(Player)
+	for node in nodes:
+		if worldToMap(node.position) == tile:
+			return node.identity
+	return null
 		
 func checkTileToMove(destination):
 	# Wall Collision Check
 	var cell = Floor.get_cell(destination.x, destination.y)
-	if cell > -1:
+	
+	# Unit Collision Check
+	var unitOnDestination = false
+	var nodes = EnemyRoot.get_children()
+	nodes.append(Player)
+	for node in nodes:
+		if worldToMap(node.position) == destination:
+			unitOnDestination = true
+			break;
+	
+	if cell > -1 && !unitOnDestination:
+		return true
+	else:
+		return false
+		
+func checkTileForPath(destination):
+	# Wall Collision Check
+	var cell = Floor.get_cell(destination.x, destination.y)
+	
+	# Unit Collision Check
+	var unitOnDestination = false
+	var nodes = EnemyRoot.get_children()
+	nodes.append(Player)
+	for node in nodes:
+		if worldToMap(node.position) == destination:
+			unitOnDestination = true
+			break;
+	
+	if cell > -1 && !unitOnDestination:
 		return true
 	else:
 		return false
