@@ -1,4 +1,4 @@
-extends AnimatedSprite
+extends Unit
 
 enum State { Idle, Move, Attack }
 const stateAnimations = ["Idle", "Move", "Move"]
@@ -14,13 +14,9 @@ var Core
 var fogMap = []
 var visionRange = 6
 var FogMap 
-var MainCamera
-var Walls
 var calledStepForLastAction = false
-var actionsFinished = true
 var vision
 var identity = Globals.Things.Player
-var previousPosition = null
 var target
 var health = 10
 var dealtDamage
@@ -32,14 +28,13 @@ var attacks = {
 	}
 }
 
-# Called when the node enters the scene tree for the first time.
+func _init():
+	health = 10
+	visionRange = 6
+	identity = Globals.Things.Player
+
 func _ready():
-	Core = get_node('../')
-	MainCamera = get_node("Camera2D")
 	FogMap = get_node("../Fog")
-	Walls = get_node("../Walls")
-	vision = Vision.new(Walls)
-	self.play('Idle')
 
 func _process(delta):
 	animationTimeElapsed += delta
@@ -95,18 +90,18 @@ func dealDamage():
 func _input(event):
 	if state == State.Idle && !moveAction && actionsFinished:
 		if event.is_action("Up"):
-			move("Up")
+			move(Globals.Directions.Up)
 			
 		elif event.is_action("Left"):
 			flip_h = true
-			move("Left")
+			move(Globals.Directions.Left)
 		
 		elif event.is_action("Down"):
-			move("Down")
+			move(Globals.Directions.Down)
 		
 		elif event.is_action("Right"):
 			flip_h = false
-			move("Right")
+			move(Globals.Directions.Right)
 			
 		elif event.is_action("Skip"):
 			actionsFinished = false
@@ -153,9 +148,9 @@ func step():
 			
 func getDestTile(direction):
 	destination = self.position
-	if direction == "Up":
+	if direction == Globals.Directions.Up:
 		destination.y += -Globals.tile_size
-	elif direction == "Left":
+	elif direction == Globals.Directions.Left:
 		destination.x += -Globals.tile_size
 	elif direction == "Down":
 		destination.y += Globals.tile_size
