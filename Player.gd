@@ -17,6 +17,7 @@ var FogMap
 var MainCamera
 var Walls
 var calledStepForLastAction = false
+var actionsFinished = true
 var vision
 var identity = Globals.Things.Player
 var previousPosition = null
@@ -92,7 +93,7 @@ func dealDamage():
 	dealtDamage = true
 
 func _input(event):
-	if state == State.Idle && !moveAction:
+	if state == State.Idle && !moveAction && actionsFinished:
 		if event.is_action("Up"):
 			move("Up")
 			
@@ -106,6 +107,10 @@ func _input(event):
 		elif event.is_action("Right"):
 			flip_h = false
 			move("Right")
+			
+		elif event.is_action("Skip"):
+			actionsFinished = false
+			Core.step()
 				
 func move(direction):
 	getDestTile(direction)
@@ -184,4 +189,7 @@ func finishedAttack():
 	calledStepForLastAction = false
 	changeState(State.Idle)
 	performAction()
+	
+func actionsFinished():
+	actionsFinished = true
 

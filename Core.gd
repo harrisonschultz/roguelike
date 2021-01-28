@@ -8,6 +8,9 @@ var rooms = []
 var map = []
 var EnemyRoot
 var FogMap
+var step = 0
+var actionQueue = []
+const MAX_STEPS = 100
 const wallsWithCollision = [7,8,14,15]
 const MIN_ROOM_SIZE = 8
 const MAX_ROOM_SIZE = 12
@@ -59,6 +62,26 @@ func checkTileToMove(destination):
 		return true
 	else:
 		return false
+
+func queueAction(action):
+	# Find where to insert action into queue
+	if actionQueue.size() < 1:
+		actionQueue.append(action)
+	else:
+		for index in range(actionQueue.size()):
+			# If the new action is faster
+			if action.speed < actionQueue[index]:
+				actionQueue.insert(index, action)
+			# If the new action is the same speed
+			elif action.speed == actionQueue[index]:
+				# If the new action speed is equal to the speed of the last action
+				if actionQueue.size() - 1 == index:
+					actionQueue.append(action)
+				else:
+					actionQueue.insert(index + 1, action)
+			# If the new action is slower then only add if we are at the last item in the queue
+			elif actionQueue.size() - 1 == index:
+				actionQueue.append(action)
 		
 func checkTileForPath(destination):
 	# Wall Collision Check
@@ -88,6 +111,12 @@ func step():
 	for node in nodes:
 		node.step()
 		
+func finishedActions():
+	var nodes = EnemyRoot.get_children()
+	Player.step()
+	for node in nodes:
+		node.step()
+	
 func reloadLevel():
 	initializeMap()
 	Walls.clear()

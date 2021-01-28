@@ -19,8 +19,8 @@ var visionRange
 var attackRange
 var player
 var lastKnownPlayerPosition
-var lastWanderMove = 0
 var previousPosition
+var actionsFinished = false
 var defenses
 var health
 var attacks
@@ -108,13 +108,13 @@ func die():
 func step():
 	var action = determineAction()
 	
-func findPathToPlayer():
+func findPathToNode(goal):
 	var astar = AStar2D.new()
 	var visibleTiles = []
 	var myPosition = Core.worldToMap(self.position)
 	var visionVector = Vector2(visionRange, visionRange)
 	var visionTopLeft = myPosition - visionVector
-	var tilePlayerPosition = Core.worldToMap(player.position)
+	var tileGoalPosition = Core.worldToMap(goal.position)
 	var target = null
 	
 	# Add additional point for self position
@@ -125,7 +125,7 @@ func findPathToPlayer():
 	for y in range(visionTopLeft.y, visionBottomRight.y):
 		for x in range(visionTopLeft.x, visionBottomRight.x):
 			var position = Vector2(x,y)
-			if position == myPosition || Core.checkTileForPath(position) || position == lastKnownPlayerPosition || position == tilePlayerPosition:
+			if position == myPosition || Core.checkTileForPath(position) || position == lastKnownPlayerPosition || position == tileGoalPosition:
 				visibleTiles.append(position)
 				astar.add_point(positionToId(position), position, 1)
 			else:
@@ -135,8 +135,8 @@ func findPathToPlayer():
 	for index in range(visibleTiles.size()):
 		var tile = visibleTiles[index]
 		# Determine if player is standing on a tile in aggro range
-		if tile == tilePlayerPosition:
-			lastKnownPlayerPosition = tilePlayerPosition
+		if tile == tileGoalPosition:
+			lastKnownPlayerPosition = tileGoalPosition
 			break;
 			
 	# find path to player if player is in aggro range
@@ -178,26 +178,6 @@ func dealDamage():
 	dealtDamage = true
 	
 			
-func determineAction():
-	var pathToPlayer = findPathToPlayer()
-	if pathToPlayer:
-		var adjacent = pathToPlayer.size() <= 2
-		if !adjacent:
-			move(pathToPlayer[1])
-		elif pathToPlayer.size() == 2:
-			attack(pathToPlayer[1], player, 'basic')
-	else:
-		wander()
-	
-func wander():
-	if lastWanderMove > 3:
-		# Choose a random direction to move
-		var direction = Globals.rng.randi_range(0, Globals.directionsArray.size() - 1)
-		moveAction = Globals.directionsArray[direction]
-		getDestTile()
-		changeState(State.Move)
-	else:
-		lastWanderMove += 1
 		
 func determineMoveDirection(destination):
 	var pos = Core.worldToMap(self.position)
