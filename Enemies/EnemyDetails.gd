@@ -3,10 +3,16 @@ extends Node
 var enemies = {
 	"slime": {
 		"stateAnimations": ["Idle", "Move", "Move"],
-		"animationDurations": [10, 0.3, 0.2],
-		"health": 10,
+		"animationDurations": [10, 0.3, 0.3],
+		"health": 3,
 		"visionRange": 4,
-		"attackRange": 1
+		"attackRange": 1,
+		"defenses": {"physical": 0},
+		"attacks": {
+			"basic": {
+				"damage": [{ "type": "physical", "damage": 1}]
+			}
+		}	
 	}
 }
 

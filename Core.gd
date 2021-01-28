@@ -39,7 +39,7 @@ func whatIsOnTile(tile):
 	nodes.append(Player)
 	for node in nodes:
 		if worldToMap(node.position) == tile:
-			return node.identity
+			return node
 	return null
 		
 func checkTileToMove(destination):
@@ -94,6 +94,15 @@ func reloadLevel():
 	Floor.clear()
 	DebugTileMap.clear()
 	loadLevel()
+	
+func combat(source, attack, victim):
+	var totalDamage = 0
+	for damages in attack['damage']:
+		totalDamage += round(abs(damages['damage'] - victim.defenses[damages['type']]))
+		
+	victim.health -= totalDamage
+	if victim.health <= 0:
+		victim.die()
 	
 func initializeMap():
 	map = []

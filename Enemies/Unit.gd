@@ -21,6 +21,12 @@ var player
 var lastKnownPlayerPosition
 var lastWanderMove = 0
 var previousPosition
+var defenses
+var health
+var attacks
+var dealtDamage
+var chosenAttack
+var target
 
 func _ready():
 	var Root = get_tree().get_root()
@@ -36,6 +42,9 @@ func init(details, position):
 	stateAnimations = details['stateAnimations']
 	attackRange = details['attackRange']
 	visionRange = details['visionRange']
+	defenses = details['defenses']
+	health = details['health']
+	attacks = details['attacks']
 	movementSpeed = Globals.tile_size / animationDurations[State.Move]
 
 func getDestTile():
@@ -53,7 +62,7 @@ func getDestTile():
 
 func _process(delta):
 	animationTimeElapsed += delta
-	if state == State.Move && moveAction && animationTimeElapsed < animationDurations[State.Move]:
+	if state == State.Move && moveAction != null && animationTimeElapsed < animationDurations[State.Move]:
 		var distance = delta * movementSpeed
 		if moveAction ==  Globals.Directions.Up:
 			Core.move(self, destination, Vector2(0, -distance))
@@ -65,9 +74,11 @@ func _process(delta):
 			Core.move(self, destination, Vector2( -distance, 0))
 	if state == State.Move && animationTimeElapsed > animationDurations[State.Move]:
 		finishedMove()
-	if state == State.Attack && moveAction && animationTimeElapsed < animationDurations[State.Attack]:
-		var distance = delta * movementSpeed
-		var pastHalf = animationTimeElapsed > animationDurations[State.Attack] /2
+	if state == State.Attack && moveAction != null && animationTimeElapsed < animationDurations[State.Attack]:
+		var distance = delta *  Globals.tile_size / animationDurations[State.Attack]
+		var pastHalf = animationTimeElapsed > float(animationDurations[State.Attack]) / 2
+		if pastHalf && !dealtDamage:
+			dealDamage()
 		if moveAction ==  Globals.Directions.Up:
 			if (pastHalf):
 				Core.move(self, destination, Vector2(0, distance))
@@ -91,6 +102,8 @@ func _process(delta):
 	if state == State.Attack && animationTimeElapsed > animationDurations[State.Attack]:
 		finishedAttack()
 		
+func die():
+	self.queue_free()
 
 func step():
 	var action = determineAction()
@@ -160,14 +173,19 @@ func positionToId(pos: Vector2):
 	return int(str(pos.x) + str(pos.y))
 	
 			
+func dealDamage():
+	Core.combat(self, attacks[chosenAttack], target)
+	dealtDamage = true
+	
+			
 func determineAction():
 	var pathToPlayer = findPathToPlayer()
 	if pathToPlayer:
 		var adjacent = pathToPlayer.size() <= 2
 		if !adjacent:
 			move(pathToPlayer[1])
-		elif pathToPlayer.size() == 1:
-			attack(pathToPlayer[1])
+		elif pathToPlayer.size() == 2:
+			attack(pathToPlayer[1], player, 'basic')
 	else:
 		wander()
 	
@@ -192,18 +210,20 @@ func determineMoveDirection(destination):
 	elif pos.x > destination.x:
 		return Globals.Directions.Left
 	
-
 func move(destination):
-	moveAction = determineMoveDirection(destination)
-	var now = Core.worldToMap(self.position)
-	getDestTile()
-	changeState(State.Move)
+	if Core.checkTileToMove(destination):
+		moveAction = determineMoveDirection(destination)
+		var now = Core.worldToMap(self.position)
+		getDestTile()
+		changeState(State.Move)
 
-func attack(destination):
+func attack(destination, attackTarget, attack):
+	chosenAttack = attack
+	target = attackTarget
 	previousPosition = self.position
 	moveAction = determineMoveDirection(destination)
 	getDestTile()
-	changeState(State.Move)
+	changeState(State.Attack)
 	
 
 func changeState(newState):
@@ -221,6 +241,8 @@ func finishedMove():
 	changeState(State.Idle)
 
 func finishedAttack():
+	dealtDamage = false;
 	moveAction = null
-	self.position = previousPosition
+	self.position.x = round(previousPosition.x / Globals.tile_size) * Globals.tile_size
+	self.position.y = round(previousPosition.y / Globals.tile_size) * Globals.tile_size
 	changeState(State.Idle)

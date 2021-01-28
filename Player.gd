@@ -20,7 +20,16 @@ var calledStepForLastAction = false
 var vision
 var identity = Globals.Things.Player
 var previousPosition = null
-
+var target
+var health = 10
+var dealtDamage
+var chosenAttack
+var defenses = { "physical": 0}
+var attacks = {
+	"basic": {
+		"damage": [{ "type": "physical", "damage": 1}]
+	}
+}
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -33,7 +42,7 @@ func _ready():
 
 func _process(delta):
 	animationTimeElapsed += delta
-	if state == State.Move && moveAction && animationTimeElapsed < animationDuration[State.Move]:
+	if state == State.Move && moveAction != null && animationTimeElapsed < animationDuration[State.Move]:
 		var distance = delta * movementSpeed
 		if moveAction == "Up":
 			Core.move(self, destination, Vector2(0, -distance))
@@ -45,9 +54,11 @@ func _process(delta):
 			Core.move(self, destination, Vector2(distance, 0))
 	if state == State.Move && animationTimeElapsed > animationDuration[State.Move]:
 		finishedMove()
-	if state == State.Attack && moveAction && animationTimeElapsed < animationDuration[State.Attack]:
+	if state == State.Attack && moveAction != null && animationTimeElapsed < animationDuration[State.Attack]:
 		var distance = delta * movementSpeed
 		var pastHalf = animationTimeElapsed > animationDuration[State.Attack] /2
+		if pastHalf && !dealtDamage:
+			dealDamage()
 		if moveAction == "Up":
 			if (pastHalf):
 				Core.move(self, destination, Vector2(0, distance))
@@ -75,6 +86,10 @@ func performAction():
 	if !calledStepForLastAction:
 		Core.step()
 		calledStepForLastAction = true
+		
+func dealDamage():
+	Core.combat(self, attacks[chosenAttack], target)
+	dealtDamage = true
 
 func _input(event):
 	if state == State.Idle && !moveAction:
@@ -99,14 +114,19 @@ func move(direction):
 		changeState(State.Move)
 	else:
 		var thing = Core.whatIsOnTile(destination)
-		if thing == Globals.Things.Enemy:
+		if thing.identity == Globals.Things.Enemy:
 			# attack	
-			attack(direction)
+			attack(direction, thing, 'basic')
 				
-func attack(direction):
+func attack(direction, attackTarget, attack):
+		chosenAttack = attack
+		target = attackTarget
 		moveAction = direction
 		previousPosition = self.position
 		changeState(State.Attack)
+
+func die():
+	self.queue_free()
 				
 func step():
 	if !calledStepForLastAction:
@@ -155,6 +175,8 @@ func finishedMove():
 	performAction()
 
 func finishedAttack():
+	chosenAttack = null
+	dealtDamage = false
 	moveAction = null
 	# set the player position to the closest center of a tile
 	# find nearest divisor of the tile_size
