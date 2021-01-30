@@ -5,12 +5,10 @@ var walls
 
 func _init(w):
 	walls = w
-	
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	pass # Replace with function body.
-
 
 func projectTile(x, y):
 	x = float(x)
@@ -18,6 +16,7 @@ func projectTile(x, y):
 	var topLeft = x / (y + 2)
 	var bottomRight = (x + 1) / (y + 1)
 	return Shadow.new(topLeft, bottomRight)
+	
 
 func look(pos: Vector2, radius: int):
 	var shadows = []

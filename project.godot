@@ -59,6 +59,7 @@ config/icon="res://icon.png"
 
 Globals="*res://Globals.gd"
 EnemyDetails="*res://Enemies/EnemyDetails.gd"
+Movement="*res://Movement.gd"
 
 [display]
 
@@ -93,7 +94,7 @@ reset={
 "events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":88,"unicode":0,"echo":false,"script":null)
  ]
 }
-Skip={
+Wait={
 "deadzone": 0.5,
 "events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":32,"unicode":0,"echo":false,"script":null)
  ]

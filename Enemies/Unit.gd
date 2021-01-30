@@ -2,119 +2,86 @@ extends AnimatedSprite
 
 class_name Unit
 
-enum State { Idle, Move, Attack }
+enum Action { Idle, Move, Attack }
 
 var animationTimeElapsed: float = 0;
-var isActing: bool = false
-var moveAction = null
-var movementSpeed: float
-var state = State.Idle
+var action = Action.Idle
 var destination
-var Core
-var Walls
+var core
+var walls
 var vision
 var animationDurations
-var stateAnimations
+var actionAnimations
 var visionRange
 var attackRange
-var player
 var lastKnownPlayerPosition
 var previousPosition
-var actionsFinished = false
+var actionsFinished = true
 var defenses
 var health
 var attacks
 var dealtDamage
 var chosenAttack
 var target
+var identity
+var takingTurn := false
+var actions = [{'speed': 25}, { "speed": 50 }, { "speed": 40 } ]
 
 func _ready():
-	var Root = get_tree().get_root()
-	Core = Root.get_node("Root")
-	Walls = Core.get_node("Walls")
-	player = Core.get_node("Player")
-	vision = Vision.new(Walls)
+	var root = get_tree().get_root()
+	core = root.get_node("Root")
+	walls = core.get_node("Walls")
+	vision = Vision.new(walls)
 
 func init(details, position):
-	self.position.x = round(position.x / Globals.tile_size) * Globals.tile_size
-	self.position.y = round(position.y / Globals.tile_size) * Globals.tile_size
+	self.position = Movement.mapToWorld(position)
 	animationDurations = details['animationDurations']
-	stateAnimations = details['stateAnimations']
+	actionAnimations = details['actionAnimations']
 	attackRange = details['attackRange']
 	visionRange = details['visionRange']
 	defenses = details['defenses']
 	health = details['health']
 	attacks = details['attacks']
-	movementSpeed = Globals.tile_size / animationDurations[State.Move]
-
-func getDestTile():
-	destination = self.position
-	if moveAction == Globals.Directions.Up:
-		destination.y += -Globals.tile_size
-	elif moveAction == Globals.Directions.Left:
-		destination.x += -Globals.tile_size
-	elif moveAction == Globals.Directions.Down:
-		destination.y += Globals.tile_size
-	elif moveAction == Globals.Directions.Right:
-		destination.x += Globals.tile_size
-	destination.x = round(destination.x / Globals.tile_size)
-	destination.y = round(destination.y / Globals.tile_size)
 
 func _process(delta):
-	animationTimeElapsed += delta
-	if state == State.Move && moveAction != null && animationTimeElapsed < animationDurations[State.Move]:
-		var distance = delta * movementSpeed
-		if moveAction ==  Globals.Directions.Up:
-			Core.move(self, destination, Vector2(0, -distance))
-		elif moveAction ==  Globals.Directions.Right:
-			Core.move(self, destination, Vector2(distance, 0))
-		elif moveAction ==  Globals.Directions.Down:
-			Core.move(self, destination, Vector2(0, distance))
-		elif moveAction ==  Globals.Directions.Left:
-			Core.move(self, destination, Vector2( -distance, 0))
-	if state == State.Move && animationTimeElapsed > animationDurations[State.Move]:
-		finishedMove()
-	if state == State.Attack && moveAction != null && animationTimeElapsed < animationDurations[State.Attack]:
-		var distance = delta *  Globals.tile_size / animationDurations[State.Attack]
-		var pastHalf = animationTimeElapsed > float(animationDurations[State.Attack]) / 2
-		if pastHalf && !dealtDamage:
-			dealDamage()
-		if moveAction ==  Globals.Directions.Up:
-			if (pastHalf):
-				Core.move(self, destination, Vector2(0, distance))
+	if takingTurn:
+		animationTimeElapsed += delta
+		
+		# Movement
+		if action == Action.Move:
+			if animationTimeElapsed < animationDurations[Action.Move]:
+				var distance = delta * Globals.tile_size / float(animationDurations[Action.Move])
+				Movement.move(self, destination, distance)
 			else:
-				Core.move(self, destination, Vector2(0, -distance))
-		elif moveAction ==  Globals.Directions.Right:
-			if (pastHalf):
-				Core.move(self, destination, Vector2(-distance, 0))
+				finishedMove()
+		
+		# Attacking
+		if action == Action.Attack:
+			if animationTimeElapsed < animationDurations[Action.Attack]:
+				var distance = delta * Globals.tile_size / float(animationDurations[Action.Attack])
+				var animationDamagePoint = animationTimeElapsed > float(animationDurations[Action.Attack]) / 2
+				
+				if animationDamagePoint && !dealtDamage:
+					dealDamage()
+					
+				if animationDamagePoint:
+					Movement.move(self, Movement.worldToMap(self.position), distance)
+				else:
+					Movement.move(self, destination, distance)
 			else:
-				Core.move(self, destination, Vector2(distance, 0))
-		elif moveAction ==  Globals.Directions.Down:
-			if (pastHalf):
-				Core.move(self, destination,  Vector2(0, -distance))
-			else:
-				Core.move(self, destination,  Vector2(0, distance))
-		elif moveAction ==  Globals.Directions.Left:
-			if (pastHalf):
-				Core.move(self, destination, Vector2( distance, 0))
-			else:
-				Core.move(self, destination, Vector2( -distance, 0))
-	if state == State.Attack && animationTimeElapsed > animationDurations[State.Attack]:
-		finishedAttack()
+				finishedAttack()
 		
 func die():
 	self.queue_free()
 
-func step():
-	var action = determineAction()
 	
 func findPathToNode(goal):
 	var astar = AStar2D.new()
 	var visibleTiles = []
-	var myPosition = Core.worldToMap(self.position)
+	var myPosition = Movement.worldToMap(self.position)
 	var visionVector = Vector2(visionRange, visionRange)
 	var visionTopLeft = myPosition - visionVector
-	var tileGoalPosition = Core.worldToMap(goal.position)
+	var tileGoalPosition = Movement.worldToMap(goal.position)
 	var target = null
 	
 	# Add additional point for self position
@@ -125,7 +92,7 @@ func findPathToNode(goal):
 	for y in range(visionTopLeft.y, visionBottomRight.y):
 		for x in range(visionTopLeft.x, visionBottomRight.x):
 			var position = Vector2(x,y)
-			if position == myPosition || Core.checkTileForPath(position) || position == lastKnownPlayerPosition || position == tileGoalPosition:
+			if position == myPosition || Movement.checkTileForPath(position) || position == lastKnownPlayerPosition || position == tileGoalPosition:
 				visibleTiles.append(position)
 				astar.add_point(positionToId(position), position, 1)
 			else:
@@ -174,55 +141,50 @@ func positionToId(pos: Vector2):
 	
 			
 func dealDamage():
-	Core.combat(self, attacks[chosenAttack], target)
+	core.combat(self, attacks[chosenAttack], target)
 	dealtDamage = true
-	
-			
-		
-func determineMoveDirection(destination):
-	var pos = Core.worldToMap(self.position)
-	if pos.y > destination.y:
-		return Globals.Directions.Up
-	elif pos.x < destination.x:
-		return Globals.Directions.Right
-	elif pos.y < destination.y:
-		return Globals.Directions.Down
-	elif pos.x > destination.x:
-		return Globals.Directions.Left
-	
-func move(destination):
-	if Core.checkTileToMove(destination):
-		moveAction = determineMoveDirection(destination)
-		var now = Core.worldToMap(self.position)
-		getDestTile()
-		changeState(State.Move)
 
-func attack(destination, attackTarget, attack):
+	
+func move(dest):
+	if Movement.checkTileToMove(dest):
+		destination = dest
+		setAction(Action.Move)
+
+func attack(dest, attackTarget, attack):
 	chosenAttack = attack
 	target = attackTarget
 	previousPosition = self.position
-	moveAction = determineMoveDirection(destination)
-	getDestTile()
-	changeState(State.Attack)
+	destination = Movement.getDestTile(self, Movement.determineDirection(self, dest))
+	setAction(Action.Attack)
 	
+func setAction(act):
+	action = act
+	core.queueAction(self, actions[action])
 
-func changeState(newState):
+	
+func takeTurn():
+	takingTurn = true
+	setAnimation(actionAnimations[action])
+	
+func setAnimation(nextAnimation):
 	animationTimeElapsed = 0
-	state = newState
-	self.play(stateAnimations[newState])
-	
-	
-func finishedMove():
-	moveAction = null
+	self.play(nextAnimation)
+
+func animationFinished():
 	# set the position to the closest center of a tile
 	# find nearest divisor of the tile_size
 	self.position.x = round(self.position.x / Globals.tile_size) * Globals.tile_size
 	self.position.y = round(self.position.y / Globals.tile_size) * Globals.tile_size
-	changeState(State.Idle)
+	setAnimation(actionAnimations[Action.Idle])
+	
+func finishTurn():
+	takingTurn = false
+	
+func finishedMove():
+	animationFinished()
+	finishTurn()
 
 func finishedAttack():
 	dealtDamage = false;
-	moveAction = null
-	self.position.x = round(previousPosition.x / Globals.tile_size) * Globals.tile_size
-	self.position.y = round(previousPosition.y / Globals.tile_size) * Globals.tile_size
-	changeState(State.Idle)
+	animationFinished()
+	finishTurn()

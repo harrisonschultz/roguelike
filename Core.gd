@@ -9,7 +9,9 @@ var map = []
 var EnemyRoot
 var FogMap
 var step = 0
-var actionQueue = []
+var stepLabel
+var turnQueue = []
+var actionCount = 0
 const MAX_STEPS = 100
 const wallsWithCollision = [7,8,14,15]
 const MIN_ROOM_SIZE = 8
@@ -22,100 +24,79 @@ func _ready():
 	Globals.rng.randomize()
 	Floor = get_node("Floor")
 	Walls = get_node("Walls")
+	stepLabel = get_node("Label")
 	FogMap = get_node("Fog")
 	DebugTileMap = get_node("Debug")
 	Player = get_node('Player')
 	EnemyRoot = get_node("EnemyRoot")
 	loadLevel()
-	step()
-
-func move(node, destination: Vector2, point):
-	node.position += point
-
-func worldToMap(pos: Vector2):
-	var x = round(pos.x / Globals.tile_size)
-	var y = round(pos.y / Globals.tile_size)
-	return Vector2(x,y)
 	
-func whatIsOnTile(tile):
-	var nodes = EnemyRoot.get_children()
-	nodes.append(Player)
-	for node in nodes:
-		if worldToMap(node.position) == tile:
-			return node
-	return null
-		
-func checkTileToMove(destination):
-	# Wall Collision Check
-	var cell = Floor.get_cell(destination.x, destination.y)
-	
-	# Unit Collision Check
-	var unitOnDestination = false
-	var nodes = EnemyRoot.get_children()
-	nodes.append(Player)
-	for node in nodes:
-		if worldToMap(node.position) == destination:
-			unitOnDestination = true
-			break;
-	
-	if cell > -1 && !unitOnDestination:
-		return true
-	else:
-		return false
 
-func queueAction(action):
+func queueAction(node, action):
+	var executesOnStep = step + action['speed']
 	# Find where to insert action into queue
-	if actionQueue.size() < 1:
-		actionQueue.append(action)
+	if turnQueue.size() < 1:
+		turnQueue.append({"step": executesOnStep, "node": node})
 	else:
-		for index in range(actionQueue.size()):
+		for index in range(turnQueue.size()):
 			# If the new action is faster
-			if action.speed < actionQueue[index]:
-				actionQueue.insert(index, action)
+			if executesOnStep < turnQueue[index]['step']:
+				turnQueue.insert(index, {"step": executesOnStep, "node": node})
+				break;
 			# If the new action is the same speed
-			elif action.speed == actionQueue[index]:
-				# If the new action speed is equal to the speed of the last action
-				if actionQueue.size() - 1 == index:
-					actionQueue.append(action)
+			elif executesOnStep == turnQueue[index]['step']:
+				# When speeds are the same, the player always goes first
+				if node.identity == Globals.Things.Player:
+					turnQueue.insert(index, {"step": executesOnStep, "node": node})
+					break;
+				# If the new action speed is equal to the speed of the last action in the queue
+				if turnQueue.size() - 1 == index:
+					turnQueue.append({"step": executesOnStep, "node": node})
+					break;
 				else:
-					actionQueue.insert(index + 1, action)
+					turnQueue.insert(index + 1, {"step": executesOnStep, "node": node})
+					break;
 			# If the new action is slower then only add if we are at the last item in the queue
-			elif actionQueue.size() - 1 == index:
-				actionQueue.append(action)
+			# otherwise it would be added already
+			elif turnQueue.size() - 1 == index:
+				turnQueue.append({"step": executesOnStep, "node": node})			
 		
-func checkTileForPath(destination):
-	# Wall Collision Check
-	var cell = Floor.get_cell(destination.x, destination.y)
-	
-	# Unit Collision Check
-	var unitOnDestination = false
-	var nodes = EnemyRoot.get_children()
-	nodes.append(Player)
-	for node in nodes:
-		if worldToMap(node.position) == destination:
-			unitOnDestination = true
-			break;
-	
-	if cell > -1 && !unitOnDestination:
-		return true
-	else:
-		return false
 		
 func _input(event):
 	if event.is_action('reset'):
 		reloadLevel()
 		
-func step():
-	var nodes = EnemyRoot.get_children()
-	Player.step()
-	for node in nodes:
-		node.step()
+func play():
+	# If there are no actions do nothing
+	if turnQueue.size() < 1:
+		return
 		
+	var unit = turnQueue[actionCount]['node']
+	
+	# If unit is dead then move to the next action
+	if !(weakref(unit).get_ref()):
+		actionCount += 1
+		return
+	
+	# Move the current step to this action's step
+	step = turnQueue[actionCount]['step']
+	
+	# If the player turn is next reset the count
+	if unit.identity == Globals.Things.Player:
+		for p in range(actionCount + 1):
+			turnQueue.pop_front()
+		actionCount = -1
+			
+	actionCount += 1
+	unit.takeTurn()
+	
+	
 func finishedActions():
 	var nodes = EnemyRoot.get_children()
 	Player.step()
 	for node in nodes:
 		node.step()
+		
 	
 func reloadLevel():
 	initializeMap()
@@ -145,7 +126,8 @@ func initializeMap():
 				map[x].append(0)
 			else:
 				map[x].append(-1)
-			FogMap.set_cell(x,y, 0)
+			FogMap.set_cell(x, y, 0)
+	Player.setVision()
 
 func buildFirstRoom():
 	var height = Globals.rng.randi_range(MIN_ROOM_SIZE, MAX_ROOM_SIZE)
@@ -204,13 +186,15 @@ func loadLevel():
 					count +=1
 					exitExists = true
 					
-					if rooms.size() == 2:
+					#if rooms.size() == 1:
 						# Add enemies to room
-						var slime = Slime.instance()
-						slime.init(EnemyDetails.enemies['slime'], getRandomRoomLocation(bottomLeft,height, width))
-						EnemyRoot.add_child(slime)
+						#var slime = Slime.instance()
+						#slime.init(EnemyDetails.enemies['slime'], getRandomRoomLocation(bottomLeft,height, width))
+						#EnemyRoot.add_child(slime)
 
-		
+	var slime = Slime.instance()
+	slime.init(EnemyDetails.enemies['slime'], Vector2(18,18))
+	EnemyRoot.add_child(slime)
 	# DEBUG
 	for x in range(map.size()):
 		for y in range(map[x].size()):
@@ -485,7 +469,6 @@ func setHallway(col, row, direction):
 	return true
 	
 func findEmptySpace(height, width):
-	print(height, width)
 	var emptyLength = 0
 	# Look for a spot in the row column array of empty spots
 	for x in range(map.size()):

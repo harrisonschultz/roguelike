@@ -2,7 +2,7 @@ extends Node
 
 var enemies = {
 	"slime": {
-		"stateAnimations": ["Idle", "Move", "Move"],
+		"actionAnimations": ["Idle", "Move", "Move"],
 		"animationDurations": [10, 0.3, 0.3],
 		"health": 3,
 		"visionRange": 4,

@@ -566,15 +566,15 @@
 
 [sub_resource type="SpriteFrames" id=4]
 animations = [ {
-"frames": [ ExtResource( 25 ), ExtResource( 32 ), ExtResource( 24 ), ExtResource( 27 ), ExtResource( 28 ), ExtResource( 29 ) ],
-"loop": true,
-"name": "Idle",
-"speed": 8.0
-}, {
 "frames": [ ExtResource( 23 ), ExtResource( 26 ), ExtResource( 30 ), ExtResource( 31 ), ExtResource( 34 ), ExtResource( 33 ) ],
 "loop": false,
 "name": "Move",
 "speed": 10.0
+}, {
+"frames": [ ExtResource( 25 ), ExtResource( 32 ), ExtResource( 24 ), ExtResource( 27 ), ExtResource( 28 ), ExtResource( 29 ) ],
+"loop": true,
+"name": "Idle",
+"speed": 8.0
 } ]
 
 [sub_resource type="TileSet" id=5]
@@ -646,8 +646,8 @@ format = 1
 [node name="Player" type="AnimatedSprite" parent="."]
 position = Vector2( 240, 240 )
 frames = SubResource( 4 )
-animation = "Move"
-frame = 5
+animation = "Idle"
+frame = 4
 playing = true
 centered = false
 script = ExtResource( 35 )
@@ -660,6 +660,16 @@ drag_margin_left = 0.0
 drag_margin_top = 0.0
 drag_margin_right = 0.0
 drag_margin_bottom = 0.0
+
+[node name="Label" type="Label" parent="Player/Camera2D"]
+margin_left = 120.0
+margin_top = -88.0
+margin_right = 160.0
+margin_bottom = -74.0
+custom_colors/font_color = Color( 0.0745098, 0.384314, 0.301961, 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="Debug" type="TileMap" parent="."]
 visible = false

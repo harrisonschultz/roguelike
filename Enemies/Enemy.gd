@@ -4,12 +4,23 @@ class_name Enemy
 
 var player
 var lastWanderMove = 0
-var identity = Globals.Things.Enemy
+
+func _init():
+	identity = Globals.Things.Enemy
 
 func _ready():
-	player = Core.get_node("Player")
+	player = core.get_node("Player")
+	selectAction()
 	
-func determineAction():
+func finishTurn():
+	.finishTurn()
+	core.play()
+
+func takeTurn():
+	.takeTurn()
+	selectAction()
+
+func selectAction():
 	var pathToPlayer = findPathToNode(player)
 	if pathToPlayer:
 		var adjacent = pathToPlayer.size() <= 2
@@ -24,8 +35,10 @@ func wander():
 	if lastWanderMove > 3:
 		# Choose a random direction to move
 		var direction = Globals.rng.randi_range(0, Globals.directionsArray.size() - 1)
-		moveAction = Globals.directionsArray[direction]
-		getDestTile()
-		changeState(State.Move)
+		var goal = Movement.getDestTile(self, direction)
+		if Movement.checkTileToMove(goal):
+			move(goal)
+		else:
+			setAction(Action.Idle)
 	else:
 		lastWanderMove += 1

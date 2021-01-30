@@ -1,94 +1,28 @@
 extends Unit
 
-enum State { Idle, Move, Attack }
-const stateAnimations = ["Idle", "Move", "Move"]
-const animationDuration = [10, 0.3, 0.2]
-
-var animationTimeElapsed: float = 0;
-var isActing: bool = false
-var moveAction = false
-var movementSpeed: float = Globals.tile_size / animationDuration[State.Move]
-var state = State.Idle
-var destination
-var Core
-var fogMap = []
-var visionRange = 6
+var visibleTiles = []
 var FogMap 
-var calledStepForLastAction = false
-var vision
-var identity = Globals.Things.Player
-var target
-var health = 10
-var dealtDamage
-var chosenAttack
-var defenses = { "physical": 0}
-var attacks = {
-	"basic": {
-		"damage": [{ "type": "physical", "damage": 1}]
-	}
-}
 
 func _init():
+	actionAnimations = ["Idle", "Move", "Move"]
+	animationDurations = [10, 0.3, 0.2]
 	health = 10
 	visionRange = 6
 	identity = Globals.Things.Player
+	defenses = { "physical": 0}
+	actions = [{'speed': 25}, { "speed": 50 }, { "speed": 40 } ]
+	attacks = {
+		"basic": {
+			"damage": [{ "type": "physical", "damage": 1}]
+		}
+	}
 
 func _ready():
 	FogMap = get_node("../Fog")
-
-func _process(delta):
-	animationTimeElapsed += delta
-	if state == State.Move && moveAction != null && animationTimeElapsed < animationDuration[State.Move]:
-		var distance = delta * movementSpeed
-		if moveAction == "Up":
-			Core.move(self, destination, Vector2(0, -distance))
-		elif moveAction == "Left":
-			Core.move(self, destination, Vector2( -distance, 0))
-		elif moveAction == "Down":
-			Core.move(self, destination, Vector2(0, distance))
-		elif moveAction == "Right":
-			Core.move(self, destination, Vector2(distance, 0))
-	if state == State.Move && animationTimeElapsed > animationDuration[State.Move]:
-		finishedMove()
-	if state == State.Attack && moveAction != null && animationTimeElapsed < animationDuration[State.Attack]:
-		var distance = delta * movementSpeed
-		var pastHalf = animationTimeElapsed > animationDuration[State.Attack] /2
-		if pastHalf && !dealtDamage:
-			dealDamage()
-		if moveAction == "Up":
-			if (pastHalf):
-				Core.move(self, destination, Vector2(0, distance))
-			else:
-				Core.move(self, destination, Vector2(0, -distance))
-		elif moveAction == "Left":
-			if (pastHalf):
-				Core.move(self, destination, Vector2( distance, 0))
-			else:
-				Core.move(self, destination, Vector2( -distance, 0))
-		elif moveAction == "Down":
-			if (pastHalf):
-				Core.move(self, destination,  Vector2(0, -distance))
-			else:
-				Core.move(self, destination,  Vector2(0, distance))
-		elif moveAction == "Right":
-			if (pastHalf):
-				Core.move(self, destination, Vector2(-distance, 0))
-			else:
-				Core.move(self, destination, Vector2(distance, 0))
-	if state == State.Attack && animationTimeElapsed > animationDuration[State.Attack]:
-		finishedAttack()
-		
-func performAction():
-	if !calledStepForLastAction:
-		Core.step()
-		calledStepForLastAction = true
-		
-func dealDamage():
-	Core.combat(self, attacks[chosenAttack], target)
-	dealtDamage = true
+	setVision()
 
 func _input(event):
-	if state == State.Idle && !moveAction && actionsFinished:
+	if actionsFinished:
 		if event.is_action("Up"):
 			move(Globals.Directions.Up)
 			
@@ -103,88 +37,62 @@ func _input(event):
 			flip_h = false
 			move(Globals.Directions.Right)
 			
-		elif event.is_action("Skip"):
-			actionsFinished = false
-			Core.step()
+		#elif event.is_action("Wait"):
+			#setAction(Action.wait)
 				
 func move(direction):
-	getDestTile(direction)
-	if Core.checkTileToMove(destination):
-		moveAction = direction
-		changeState(State.Move)
+	destination = Movement.getDestTile(self, direction)
+	if Movement.checkTileToMove(destination):
+		setAction(Action.Move)
 	else:
-		var thing = Core.whatIsOnTile(destination)
-		if thing.identity == Globals.Things.Enemy:
-			# attack	
-			attack(direction, thing, 'basic')
+		var thing = Movement.whatIsOnTile(destination)
+		if thing:
+			if thing.identity == Globals.Things.Enemy:
+				attack(direction, thing, 'basic')
 				
 func attack(direction, attackTarget, attack):
 		chosenAttack = attack
 		target = attackTarget
-		moveAction = direction
 		previousPosition = self.position
-		changeState(State.Attack)
-
+		setAction(Action.Attack)
+		
+func setAction(act):
+	.setAction(act)
+	actionsFinished = false
+	core.play()
+	
 func die():
 	self.queue_free()
 				
-func step():
-	if !calledStepForLastAction:
-		if !destination:
-			destination = Vector2(round(self.position.x / Globals.tile_size),round(self.position.y / Globals.tile_size))
-		var x = destination.x
-		var y = destination.y 
+func setVision():
+	if !destination:
+		destination = Movement.worldToMap(self.position)
 		
-		# Hide all shown tiles
-		for point in fogMap:
-			FogMap.set_cell(point.x, point.y, 0)
-		
-		# Get vision.
-		FogMap.set_cell(x, y, -1)
-		fogMap = vision.look(Vector2(x, y), visionRange)
-		for point in fogMap:
-			FogMap.set_cell(point.x, point.y, -1)
+	var x = destination.x
+	var y = destination.y 
 	
-			
-func getDestTile(direction):
-	destination = self.position
-	if direction == Globals.Directions.Up:
-		destination.y += -Globals.tile_size
-	elif direction == Globals.Directions.Left:
-		destination.x += -Globals.tile_size
-	elif direction == "Down":
-		destination.y += Globals.tile_size
-	elif direction == "Right":
-		destination.x += Globals.tile_size
-	destination.x = round(destination.x / Globals.tile_size)
-	destination.y = round(destination.y / Globals.tile_size)
-		
-func changeState(newState):
-	animationTimeElapsed = 0
-	state = newState
-	self.play(stateAnimations[newState])
+	# Hide all shown tiles
+	for point in visibleTiles:
+		FogMap.set_cell(point.x, point.y, 0)
+	
+	# Reveal tile you are standing on
+	FogMap.set_cell(x, y, -1)
+	
+	# Get vision.
+	visibleTiles = vision.look(destination, visionRange)
+	for point in visibleTiles:
+		FogMap.set_cell(point.x, point.y, -1)
 	
 func finishedMove():
-	moveAction = null
-	# set the player position to the closest center of a tile
-	# find nearest divisor of the tile_size
-	self.position.x = round(self.position.x / Globals.tile_size) * Globals.tile_size
-	self.position.y = round(self.position.y / Globals.tile_size) * Globals.tile_size
-	calledStepForLastAction = false
-	changeState(State.Idle)
-	performAction()
+	setVision()
+	actionsFinished = true
+	animationFinished()
+	finishTurn()
 
 func finishedAttack():
 	chosenAttack = null
 	dealtDamage = false
-	moveAction = null
-	# set the player position to the closest center of a tile
-	# find nearest divisor of the tile_size
-	self.position = previousPosition
-	calledStepForLastAction = false
-	changeState(State.Idle)
-	performAction()
-	
-func actionsFinished():
 	actionsFinished = true
+	animationFinished()
+	finishTurn()
 
