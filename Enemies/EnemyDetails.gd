@@ -7,6 +7,9 @@ var enemies = {
 		"health": 3,
 		"visionRange": 4,
 		"attackRange": 1,
+		"awards":{
+			"experience": 1
+		},
 		"defenses": {"physical": 0},
 		"attacks": {
 			"basic": {

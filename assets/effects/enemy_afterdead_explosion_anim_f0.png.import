@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/enemy_afterdead_explosion_anim_f0.png-c80ddc5c7303f52589c6c11a5979cee3.stex"
+path="res://.import/enemy_afterdead_explosion_anim_f0.png-44af046851df9140428331821b3d50f4.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects (new)/enemy_afterdead_explosion_anim_f0.png"
-dest_files=[ "res://.import/enemy_afterdead_explosion_anim_f0.png-c80ddc5c7303f52589c6c11a5979cee3.stex" ]
+source_file="res://assets/effects/enemy_afterdead_explosion_anim_f0.png"
+dest_files=[ "res://.import/enemy_afterdead_explosion_anim_f0.png-44af046851df9140428331821b3d50f4.stex" ]
 
 [params]
 
