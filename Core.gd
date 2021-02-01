@@ -12,6 +12,7 @@ var step = 0
 var stepLabel
 var turnQueue = []
 var actionCount = 0
+var enemiesTakingTurns = []
 const MAX_STEPS = 100
 const wallsWithCollision = [7,8,14,15]
 const MIN_ROOM_SIZE = 8
@@ -21,6 +22,7 @@ const EXIT_SIZE = 5
 var Slime = load("res://Enemies/Slime/Slime.tscn")
 
 func _ready():
+	OS.set_window_size(Vector2(1280, 720))
 	Globals.rng.randomize()
 	Floor = get_node("Floor")
 	Walls = get_node("Walls")
@@ -31,65 +33,34 @@ func _ready():
 	EnemyRoot = get_node("EnemyRoot")
 	loadLevel()
 	
-
-func queueAction(node, action):
-	var executesOnStep = step + action['speed']
-	# Find where to insert action into queue
-	if turnQueue.size() < 1:
-		turnQueue.append({"step": executesOnStep, "node": node})
-	else:
-		for index in range(turnQueue.size()):
-			# If the new action is faster
-			if executesOnStep < turnQueue[index]['step']:
-				turnQueue.insert(index, {"step": executesOnStep, "node": node})
-				break;
-			# If the new action is the same speed
-			elif executesOnStep == turnQueue[index]['step']:
-				# When speeds are the same, the player always goes first
-				if node.identity == Globals.Things.Player:
-					turnQueue.insert(index, {"step": executesOnStep, "node": node})
-					break;
-				# If the new action speed is equal to the speed of the last action in the queue
-				if turnQueue.size() - 1 == index:
-					turnQueue.append({"step": executesOnStep, "node": node})
-					break;
-				else:
-					turnQueue.insert(index + 1, {"step": executesOnStep, "node": node})
-					break;
-			# If the new action is slower then only add if we are at the last item in the queue
-			# otherwise it would be added already
-			elif turnQueue.size() - 1 == index:
-				turnQueue.append({"step": executesOnStep, "node": node})			
-		
+	Player.position = Vector2(240,240)
+	Player.setVision()
+	
 		
 func _input(event):
 	if event.is_action('reset'):
 		reloadLevel()
+	
+func playPlayerTurn():
+	Player.takeTurn()
 		
-func play():
-	# If there are no actions do nothing
-	if turnQueue.size() < 1:
-		return
+func playEnemyTurn():
+	var units = EnemyRoot.get_children()
+	for unit in units:
+		unit.takeTurn()
 		
-	var unit = turnQueue[actionCount]['node']
-	
-	# If unit is dead then move to the next action
-	if !(weakref(unit).get_ref()):
-		actionCount += 1
-		return
-	
-	# Move the current step to this action's step
-	step = turnQueue[actionCount]['step']
-	
-	# If the player turn is next reset the count
-	if unit.identity == Globals.Things.Player:
-		for p in range(actionCount + 1):
-			turnQueue.pop_front()
-		actionCount = -1
-			
-	actionCount += 1
-	unit.takeTurn()
-	
+func finishEnemyTurn():
+	# Allow player to act.
+	Player.setIsEnemyTurn(checkForEnemyTurnFinished())
+
+func checkForEnemyTurnFinished():
+	var isTakingTurn = false
+	var units = EnemyRoot.get_children()
+	for unit in units:
+		if unit.takingTurn == true:
+			isTakingTurn = true
+			break
+	return isTakingTurn	
 	
 func finishedActions():
 	var nodes = EnemyRoot.get_children()
@@ -111,6 +82,9 @@ func combat(source, attack, victim):
 		totalDamage += round(abs(damages['damage'] - victim.defenses[damages['type']]))
 		
 	victim.health -= totalDamage
+	if totalDamage > 0:
+		victim.damageTaken()
+	
 	if victim.health <= 0:
 		victim.die()
 	

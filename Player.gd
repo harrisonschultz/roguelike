@@ -2,11 +2,17 @@ extends Unit
 
 var visibleTiles = []
 var FogMap 
+var isEnemyTurn = false
+var experience = 0
+var level = 1
+var HealthBar
+var maxHealth = 10
 
 func _init():
 	actionAnimations = ["Idle", "Move", "Move"]
 	animationDurations = [10, 0.3, 0.2]
 	health = 10
+	maxHealth = 10
 	visionRange = 6
 	identity = Globals.Things.Player
 	defenses = { "physical": 0}
@@ -16,13 +22,26 @@ func _init():
 			"damage": [{ "type": "physical", "damage": 1}]
 		}
 	}
-
+	
 func _ready():
 	FogMap = get_node("../Fog")
+	HealthBar = get_node("./Camera2D/HudLayer/Hud/HealthbarContainer/HealthGauge")
 	setVision()
+	updateStats()
+	
+func setIsEnemyTurn(turn):
+	isEnemyTurn = turn
+
+func damageTaken():
+	updateStats()
+	
+func updateStats():
+	HealthBar.set_value(health)
+	HealthBar.max_value = maxHealth
+	pass
 
 func _input(event):
-	if actionsFinished:
+	if actionsFinished && !isEnemyTurn:
 		if event.is_action("Up"):
 			move(Globals.Directions.Up)
 			
@@ -59,8 +78,8 @@ func attack(direction, attackTarget, attack):
 func setAction(act):
 	.setAction(act)
 	actionsFinished = false
-	core.play()
-	
+	core.playPlayerTurn()
+
 func die():
 	self.queue_free()
 				
@@ -82,6 +101,10 @@ func setVision():
 	visibleTiles = vision.look(destination, visionRange)
 	for point in visibleTiles:
 		FogMap.set_cell(point.x, point.y, -1)
+		
+func finishTurn():
+	.finishTurn()
+	core.playEnemyTurn()
 	
 func finishedMove():
 	setVision()

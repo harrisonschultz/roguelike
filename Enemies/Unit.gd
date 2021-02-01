@@ -138,7 +138,9 @@ func findPathToNode(goal):
 		
 func positionToId(pos: Vector2):
 	return int(str(pos.x) + str(pos.y))
-	
+
+func damageTaken():
+	pass
 			
 func dealDamage():
 	core.combat(self, attacks[chosenAttack], target)
@@ -159,7 +161,6 @@ func attack(dest, attackTarget, attack):
 	
 func setAction(act):
 	action = act
-	core.queueAction(self, actions[action])
 
 	
 func takeTurn():

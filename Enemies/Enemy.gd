@@ -11,14 +11,17 @@ func _init():
 func _ready():
 	player = core.get_node("Player")
 	selectAction()
-	
-func finishTurn():
-	.finishTurn()
-	core.play()
 
 func takeTurn():
 	.takeTurn()
 	selectAction()
+	
+func finishTurn():
+	.finishTurn()
+	core.finishEnemyTurn()
+	
+func die():
+	pass
 
 func selectAction():
 	var pathToPlayer = findPathToNode(player)
