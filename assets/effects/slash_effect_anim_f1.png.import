@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/slash_effect_anim_f1.png-bf3867c44a20b8973a48f643117b5b94.stex"
+path="res://.import/slash_effect_anim_f1.png-3bb5b682f0ecfb1945d9e47d11560f31.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects (new)/slash_effect_anim_f1.png"
-dest_files=[ "res://.import/slash_effect_anim_f1.png-bf3867c44a20b8973a48f643117b5b94.stex" ]
+source_file="res://assets/effects/slash_effect_anim_f1.png"
+dest_files=[ "res://.import/slash_effect_anim_f1.png-3bb5b682f0ecfb1945d9e47d11560f31.stex" ]
 
 [params]
 

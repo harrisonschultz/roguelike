@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/hit_effect_anim_f2.png-c0a43e256740cf83707e99b434a1a274.stex"
+path="res://.import/hit_effect_anim_f2.png-0727f4baf1cf4762da44fee0e8f9809b.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects (new)/hit_effect_anim_f2.png"
-dest_files=[ "res://.import/hit_effect_anim_f2.png-c0a43e256740cf83707e99b434a1a274.stex" ]
+source_file="res://assets/effects/hit_effect_anim_f2.png"
+dest_files=[ "res://.import/hit_effect_anim_f2.png-0727f4baf1cf4762da44fee0e8f9809b.stex" ]
 
 [params]
 
