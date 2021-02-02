@@ -476,3 +476,12 @@ func checkMapSquare(height, width, x, y):
 					return false
 		return true
 
+
+func _on_Button_pressed():
+	get_node("Player/Camera2D/HudLayer/CharacterSheet").visible = true;
+	pass # Replace with function body.
+
+
+func _on_ExitCharacterSheet_pressed():
+	get_node("Player/Camera2D/HudLayer/CharacterSheet").visible = false
+	pass # Replace with function body.

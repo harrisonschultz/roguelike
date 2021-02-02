@@ -4,9 +4,14 @@ class_name Enemy
 
 var player
 var lastWanderMove = 0
+var awards
 
 func _init():
 	identity = Globals.Things.Enemy
+	
+func init(details, position):
+	.init(details, position)
+	awards = details['awards']
 
 func _ready():
 	player = core.get_node("Player")
@@ -21,7 +26,9 @@ func finishTurn():
 	core.finishEnemyTurn()
 	
 func die():
-	pass
+	.die()
+	if awards:
+		player.receive(awards)
 
 func selectAction():
 	var pathToPlayer = findPathToNode(player)
