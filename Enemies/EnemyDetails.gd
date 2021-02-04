@@ -10,12 +10,17 @@ var enemies = {
 		"awards":{
 			"experience": 1
 		},
-		"defenses": {"physical": 0},
+		"defenses": { Globals.DamageType.Physical: 0},
 		"attacks": {
 			"basic": {
-				"damage": [{ "type": "physical", "damage": 1}]
+					"damage": [{ "type": Globals.DamageType.Physical, "damage": [1,1]}]
 			}
-		}	
+		},
+		"loot":{
+			"gold": [1,3],
+			"randomItems": [1,1],
+			"rarity": [1,1]
+		},
 	}
 }
 

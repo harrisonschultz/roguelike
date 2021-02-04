@@ -7,6 +7,7 @@ var DebugTileMap
 var rooms = []
 var map = []
 var EnemyRoot
+var ItemRoot
 var FogMap
 var step = 0
 var stepLabel
@@ -31,6 +32,8 @@ func _ready():
 	DebugTileMap = get_node("Debug")
 	Player = get_node('Player')
 	EnemyRoot = get_node("EnemyRoot")
+	ItemRoot = get_node("ItemRoot")
+	
 	loadLevel()
 	
 	Player.position = Vector2(240,240)
@@ -79,7 +82,11 @@ func reloadLevel():
 func combat(source, attack, victim):
 	var totalDamage = 0
 	for damages in attack['damage']:
-		totalDamage += round(abs(damages['damage'] - victim.defenses[damages['type']]))
+		var chosenDamage = Globals.rng.randi_range(damages['damage'][0], damages['damage'][1])
+		var damageTaken = round(chosenDamage - victim.defenses[damages['type']])
+		if damageTaken < 0:
+			damageTaken = 0
+		totalDamage += damageTaken
 		
 	victim.health -= totalDamage
 	if totalDamage > 0:
@@ -475,13 +482,16 @@ func checkMapSquare(height, width, x, y):
 				if map[xPos][yPos] != -1:
 					return false
 		return true
-
+		
+func activateFloorInteractables(node: Unit):
+	for item in ItemRoot.get_children():
+		if node.identity == Globals.Things.Player:
+			if item.identity == Globals.Things.Gold:
+				item.activate(node)
 
 func _on_Button_pressed():
 	get_node("Player/Camera2D/HudLayer/CharacterSheet").visible = true;
-	pass # Replace with function body.
-
-
+	
 func _on_ExitCharacterSheet_pressed():
 	get_node("Player/Camera2D/HudLayer/CharacterSheet").visible = false
-	pass # Replace with function body.
+
