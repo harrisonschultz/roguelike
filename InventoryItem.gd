@@ -1,6 +1,4 @@
-extends Sprite
-
-class_name Item
+extends TextureRect
 
 var itemName
 var rarity
@@ -15,7 +13,7 @@ var details
 var itemType
 var equipmentType
 	
-func init(stats, worldPosition: Vector2):
+func init(stats):
 	details = stats
 	itemName = stats['itemName']
 	identity = Globals.Things.Item
@@ -26,10 +24,7 @@ func init(stats, worldPosition: Vector2):
 	itemType = stats['itemType']
 	equipmentType = stats['equipmentType']
 	var image = load(stats['sprite'])
-	self.centered = false
 	self.texture = image
-	self.position = worldPosition
-	Movement.centerMe(self)
 
 func showDetails(show):
 	if show:
@@ -46,14 +41,16 @@ func _ready():
 	itemRoot = core.get_node('ItemRoot')
 	pass
 
-func _on_ItemSprite_mouse_entered():
+func _on_InventoryItem_mouse_entered():
 	showDetails(true)
 
-func _on_ItemSprite_mouse_exited():
+func _on_InventoryItem_mouse_exited():
 	showDetails(false)
 
-func _on_ItemSprite_input_event(viewport, event, shape_idx):
+func _on_InventoryItem_gui_input(event):
 	if event.is_action("LeftClick"):
-		itemRoot.remove_child(self)
-		player.addToInventory(self)
+		if self.itemType == Globals.ItemType.Equipment:
+			player.equipItem(self)
+		elif self.itemType == Globals.ItemType.Consumable:
+			pass
 

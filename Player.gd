@@ -1,5 +1,7 @@
 extends Unit
 
+var InventoryItem = preload("res://InventoryItem.tscn")
+
 var visibleTiles = []
 var attributeNames = ['strength', 'agility']
 var FogMap 
@@ -17,6 +19,27 @@ var attributes = {
 	"strength": 0,
 	"agility": 0,
 } 
+var equipment = {
+	Globals.EquipmentType.MainHand: null,
+	Globals.EquipmentType.OffHand: null,
+	Globals.EquipmentType.Head: null,
+	Globals.EquipmentType.Chest: null,
+	Globals.EquipmentType.Pants: null,
+	Globals.EquipmentType.Ranged: null,
+	Globals.EquipmentType.LeftRing: null,
+	Globals.EquipmentType.RightRing: null,
+}
+
+var equipmentNode = {
+	Globals.EquipmentType.MainHand: null,
+	Globals.EquipmentType.OffHand: null,
+	Globals.EquipmentType.Head: null,
+	Globals.EquipmentType.Chest: null,
+	Globals.EquipmentType.Pants: null,
+	Globals.EquipmentType.Ranged: null,
+	Globals.EquipmentType.LeftRing: null,
+	Globals.EquipmentType.RightRing: null,
+}
 
 func _init():
 	levelThreshold = calculateLevelThreshold()
@@ -37,17 +60,27 @@ func removeFromInventory(item):
 	for i in range(inventory.size()):
 		if inventory[i].get_instance_id() == item.get_instance_id():
 			inventory.remove(i)
+			inventoryNode.remove_child(item)
 	
 func addToInventory(item):
 	inventory.append(item)
-	inventoryNode.add_child(item)
+	var inventoryItem = InventoryItem.instance()
+	inventoryItem.init(item.details)
+	inventoryNode.add_child(inventoryItem)
 	
 	
 func _ready():
 	FogMap = get_node("../Fog")
 	HealthBar = get_node("./Camera2D/HudLayer/Hud/HealthbarContainer/HealthGauge")
-	inventoryNode = get_node("./Camera2D/HudLayer/CharacterSheet/MarginContainer/VBoxContainer/HBoxContainer/Inventory")
-	setVision()
+	inventoryNode = get_node("./Camera2D/HudLayer/CharacterSheet/Page/PageRows/InnerPage/PageColumns/RightSide/InventoryBackground/Inventory")
+	equipmentNode[Globals.EquipmentType.MainHand] = get_node('./Camera2D/HudLayer/CharacterSheet/Page/PageRows/InnerPage/PageColumns/LeftSide/CharacterContainer/Character/Equipment/MainHand/Item')
+	equipmentNode[Globals.EquipmentType.OffHand] = get_node('./Camera2D/HudLayer/CharacterSheet/Page/PageRows/InnerPage/PageColumns/LeftSide/CharacterContainer/Character/Equipment/OffHand/Item')
+	equipmentNode[Globals.EquipmentType.Head] = get_node('./Camera2D/HudLayer/CharacterSheet/Page/PageRows/InnerPage/PageColumns/LeftSide/CharacterContainer/Character/Equipment/Head/Item')
+	equipmentNode[Globals.EquipmentType.Chest] = get_node('./Camera2D/HudLayer/CharacterSheet/Page/PageRows/InnerPage/PageColumns/LeftSide/CharacterContainer/Character/Equipment/Chest/Item')
+	equipmentNode[Globals.EquipmentType.Ranged] = get_node('./Camera2D/HudLayer/CharacterSheet/Page/PageRows/InnerPage/PageColumns/LeftSide/CharacterContainer/Character/Equipment/Ranged/Item')
+	equipmentNode[Globals.EquipmentType.Pants] = get_node('./Camera2D/HudLayer/CharacterSheet/Page/PageRows/InnerPage/PageColumns/LeftSide/CharacterContainer/Character/Equipment/Pants/Item')
+	equipmentNode[Globals.EquipmentType.LeftRing] = get_node('./Camera2D/HudLayer/CharacterSheet/Page/PageRows/InnerPage/PageColumns/LeftSide/CharacterContainer/Character/Equipment/LeftRing/Item')
+	equipmentNode[Globals.EquipmentType.RightRing] = get_node('./Camera2D/HudLayer/CharacterSheet/Page/PageRows/InnerPage/PageColumns/LeftSide/CharacterContainer/Character/Equipment/RightRing/Item')
 	updateStats()
 	updateAttributes()
 	
@@ -57,13 +90,24 @@ func setIsEnemyTurn(turn):
 func damageTaken():
 	updateStats()
 	
+func unequip(item):
+	addToInventory(equipment[item.equipmentType])
+	equipmentNode[item.equipmentType].texture = null
+	
+func equipItem(item):
+	if equipment[item.equipmentType]:
+		unequip(equipment[item.equipmentType])
+	equipment[item.equipmentType] = item
+	equipmentNode[item.equipmentType].texture = item.image
+	removeFromInventory(item)
+
 func updateStats():
 	HealthBar.max_value = maxHealth
 	HealthBar.value = health
 	
 func updateAttributes():
 	for attr in attributeNames:
-		var uiLabel = get_node("Camera2D/HudLayer/CharacterSheet/MarginContainer/VBoxContainer/HBoxContainer/StatsContainer/Stats/" + attr + "Container/" + attr + "Value")
+		var uiLabel = get_node("Camera2D/HudLayer/CharacterSheet/Page/PageRows/InnerPage/PageColumns/LeftSide/StatsContainer/Stats/" + attr + "Container/" + attr + "Value")
 		uiLabel.text = str(attributes[attr])
 	
 func addAttribute(attr, value):
@@ -127,11 +171,12 @@ func die():
 	self.queue_free()
 				
 func setVision():
+	var vantagePoint = destination
 	if !destination:
-		destination = Movement.worldToMap(self.position)
+		vantagePoint = Movement.worldToMap(self.position)
 		
-	var x = destination.x
-	var y = destination.y 
+	var x = vantagePoint.x
+	var y = vantagePoint.y 
 	
 	# Hide all shown tiles
 	for point in visibleTiles:
@@ -141,7 +186,7 @@ func setVision():
 	FogMap.set_cell(x, y, -1)
 	
 	# Get vision.
-	visibleTiles = vision.look(destination, visionRange)
+	visibleTiles = vision.look(vantagePoint, visionRange)
 	for point in visibleTiles:
 		FogMap.set_cell(point.x, point.y, -1)
 		

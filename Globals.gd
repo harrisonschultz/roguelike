@@ -6,8 +6,10 @@ enum FogState { Hidden, Partial, Revealed }
 enum Directions { Up, Right, Down, Left }
 enum Things { Player, Enemy, Gold, Item }
 enum WeaponType { OneHandedMelee, TwoHandedMelee, TwoHandedRanged }
+enum EquipmentType { MainHand, OffHand, Head, Chest, Ranged, Pants, Hands, LeftRing, RightRing }
 enum DamageType { Physical, Fire, Water, Holy, Arcane, Dark }
 enum LootType { Any }
+enum ItemType { Consumable, Equipment }
 
 const tile_size = 16
 const directionsArray = [ Directions.Up, Directions.Right, Directions.Down, Directions.Left ]

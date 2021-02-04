@@ -13,6 +13,7 @@ var step = 0
 var stepLabel
 var turnQueue = []
 var actionCount = 0
+var inputDelay = 0
 var enemiesTakingTurns = []
 const MAX_STEPS = 100
 const wallsWithCollision = [7,8,14,15]
@@ -35,14 +36,18 @@ func _ready():
 	ItemRoot = get_node("ItemRoot")
 	
 	loadLevel()
-	
 	Player.position = Vector2(240,240)
 	Player.setVision()
-	
 		
 func _input(event):
 	if event.is_action('reset'):
 		reloadLevel()
+	if event.is_action('C') && inputDelay > 0.15:
+		inputDelay = 0
+		get_node("Player/Camera2D/HudLayer/CharacterSheet").visible = !get_node("Player/Camera2D/HudLayer/CharacterSheet").visible
+		
+func _process(delta):
+	inputDelay += delta
 	
 func playPlayerTurn():
 	Player.takeTurn()
@@ -108,7 +113,6 @@ func initializeMap():
 			else:
 				map[x].append(-1)
 			FogMap.set_cell(x, y, 0)
-	Player.setVision()
 
 func buildFirstRoom():
 	var height = Globals.rng.randi_range(MIN_ROOM_SIZE, MAX_ROOM_SIZE)
