@@ -4,7 +4,10 @@ enum WallTiles { Door, Wall, WallMissingBricks, WallWithGrate, Crack, Bottom, Bo
 enum Map { Occupied, Edge, Hallway}
 enum FogState { Hidden, Partial, Revealed }
 enum Directions { Up, Right, Down, Left }
-enum Things { Player, Enemy }
+enum Things { Player, Enemy, Gold, Item }
+enum WeaponType { OneHandedMelee, TwoHandedMelee, TwoHandedRanged }
+enum DamageType { Physical, Fire, Water, Holy, Arcane, Dark }
+enum LootType { Any }
 
 const tile_size = 16
 const directionsArray = [ Directions.Up, Directions.Right, Directions.Down, Directions.Left ]

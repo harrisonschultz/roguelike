@@ -183,6 +183,7 @@ func finishTurn():
 	
 func finishedMove():
 	animationFinished()
+	core.activateFloorInteractables(self)
 	finishTurn()
 
 func finishedAttack():

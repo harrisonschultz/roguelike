@@ -10,6 +10,9 @@ var HealthBar
 var maxHealth = 10
 var levelThreshold = 0
 var attributePoints = 0
+var gold = 0
+var inventory = []
+var inventoryNode
 var attributes = {
 	"strength": 0,
 	"agility": 0,
@@ -23,17 +26,27 @@ func _init():
 	maxHealth = 10
 	visionRange = 6
 	identity = Globals.Things.Player
-	defenses = { "physical": 0}
-	actions = [{'speed': 25}, { "speed": 50 }, { "speed": 40 } ]
+	defenses = { Globals.DamageType.Physical: 0 }
 	attacks = {
 		"basic": {
-			"damage": [{ "type": "physical", "damage": 1}]
+			"damage": [{ "type": Globals.DamageType.Physical, "damage":[1,1]}]
 		}
 	}
+	
+func removeFromInventory(item):
+	for i in range(inventory.size()):
+		if inventory[i].get_instance_id() == item.get_instance_id():
+			inventory.remove(i)
+	
+func addToInventory(item):
+	inventory.append(item)
+	inventoryNode.add_child(item)
+	
 	
 func _ready():
 	FogMap = get_node("../Fog")
 	HealthBar = get_node("./Camera2D/HudLayer/Hud/HealthbarContainer/HealthGauge")
+	inventoryNode = get_node("./Camera2D/HudLayer/CharacterSheet/MarginContainer/VBoxContainer/HBoxContainer/Inventory")
 	setVision()
 	updateStats()
 	updateAttributes()
@@ -45,16 +58,12 @@ func damageTaken():
 	updateStats()
 	
 func updateStats():
-	#print(health)
-	#print(maxHealth)
 	HealthBar.max_value = maxHealth
 	HealthBar.value = health
-	pass
 	
 func updateAttributes():
-	pass
 	for attr in attributeNames:
-		var uiLabel = get_node("Camera2D/HudLayer/CharacterSheet/MarginContainer/VBoxContainer/StatsContainer/Stats/" + attr + "Container/" + attr + "Value")
+		var uiLabel = get_node("Camera2D/HudLayer/CharacterSheet/MarginContainer/VBoxContainer/HBoxContainer/StatsContainer/Stats/" + attr + "Container/" + attr + "Value")
 		uiLabel.text = str(attributes[attr])
 	
 func addAttribute(attr, value):
@@ -143,15 +152,12 @@ func finishTurn():
 func finishedMove():
 	setVision()
 	actionsFinished = true
-	animationFinished()
-	finishTurn()
+	.finishedMove()
 
 func finishedAttack():
 	chosenAttack = null
-	dealtDamage = false
 	actionsFinished = true
-	animationFinished()
-	finishTurn()
+	.finishedAttack()
 	
 func calculateLevelThreshold():
 	return 1 * level
@@ -176,7 +182,6 @@ func receive(awards):
 
 func _on_StrPlus_pressed():
 	addAttribute('strength', 1)
-
 
 func _on_AgiPlus_pressed():
 	addAttribute('agility', 1)
