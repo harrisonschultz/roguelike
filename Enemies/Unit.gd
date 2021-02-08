@@ -26,6 +26,7 @@ var target
 var identity
 var takingTurn := false
 var actions = [{'speed': 25}, { "speed": 50 }, { "speed": 40 } ]
+var inCombat = false
 
 func _ready():
 	var root = get_tree().get_root()
@@ -104,6 +105,7 @@ func findPathToNode(goal):
 		# Determine if player is standing on a tile in aggro range
 		if tile == tileGoalPosition:
 			lastKnownPlayerPosition = tileGoalPosition
+			inCombat = true
 			break;
 			
 	# find path to player if player is in aggro range
@@ -162,7 +164,6 @@ func attack(dest, attackTarget, attack):
 func setAction(act):
 	action = act
 
-	
 func takeTurn():
 	takingTurn = true
 	setAnimation(actionAnimations[action])

@@ -8,6 +8,7 @@ enum Things { Player, Enemy, Gold, Item }
 enum WeaponType { OneHandedMelee, TwoHandedMelee, TwoHandedRanged }
 enum EquipmentType { MainHand, OffHand, Head, Chest, Ranged, Pants, Hands, LeftRing, RightRing }
 enum DamageType { Physical, Fire, Water, Holy, Arcane, Dark }
+enum AttackType { Melee }
 enum LootType { Any }
 enum ItemType { Consumable, Equipment }
 

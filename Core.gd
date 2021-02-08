@@ -14,7 +14,6 @@ var stepLabel
 var turnQueue = []
 var actionCount = 0
 var inputDelay = 0
-var enemiesTakingTurns = []
 const MAX_STEPS = 100
 const wallsWithCollision = [7,8,14,15]
 const MIN_ROOM_SIZE = 8
@@ -65,18 +64,17 @@ func checkForEnemyTurnFinished():
 	var isTakingTurn = false
 	var units = EnemyRoot.get_children()
 	for unit in units:
-		if unit.takingTurn == true:
+		if unit.takingTurn == true && unit.inCombat:
 			isTakingTurn = true
 			break
 	return isTakingTurn	
-	
+
 func finishedActions():
 	var nodes = EnemyRoot.get_children()
 	Player.step()
 	for node in nodes:
 		node.step()
-		
-	
+
 func reloadLevel():
 	initializeMap()
 	Walls.clear()
@@ -88,6 +86,12 @@ func combat(source, attack, victim):
 	var totalDamage = 0
 	for damages in attack['damage']:
 		var chosenDamage = Globals.rng.randi_range(damages['damage'][0], damages['damage'][1])
+		
+		# Add Bonuses
+		if 'type' in attack && attack['type'] == Globals.AttackType.Melee:
+			if source.attributes:
+				chosenDamage += source.attributes['strength']
+		
 		var damageTaken = round(chosenDamage - victim.defenses[damages['type']])
 		if damageTaken < 0:
 			damageTaken = 0
@@ -171,26 +175,24 @@ func loadLevel():
 					count +=1
 					exitExists = true
 					
-					#if rooms.size() == 1:
+					if rooms.size() > 1:
 						# Add enemies to room
-						#var slime = Slime.instance()
-						#slime.init(EnemyDetails.enemies['slime'], getRandomRoomLocation(bottomLeft,height, width))
-						#EnemyRoot.add_child(slime)
+						var slime = Slime.instance()
+						slime.init(EnemyDetails.enemies['slime'], getRandomRoomLocation(bottomLeft,height, width))
+						EnemyRoot.add_child(slime)
 
 	var slime = Slime.instance()
 	slime.init(EnemyDetails.enemies['slime'], Vector2(18,18))
 	EnemyRoot.add_child(slime)
+
 	# DEBUG
 	for x in range(map.size()):
 		for y in range(map[x].size()):
 			DebugTileMap.set_cell(x,y, map[x][y])
 			
 func getRandomRoomLocation(bottomLeft, height, width):
-	bottomLeft = bottomLeft * Globals.tile_size
-	height = (height - 3) * Globals.tile_size
-	width = (width - 3) * Globals.tile_size
-	var x = Globals.rng.randi_range(bottomLeft.x, bottomLeft.x + width)
-	var y = Globals.rng.randi_range(bottomLeft.y, bottomLeft.y - height)
+	var x = Globals.rng.randi_range(bottomLeft.x + 3, bottomLeft.x + width - 3)
+	var y = Globals.rng.randi_range(bottomLeft.y - 3, bottomLeft.y - height + 3)
 	var loc = Vector2(round(x),round(y))
 	return loc
 			

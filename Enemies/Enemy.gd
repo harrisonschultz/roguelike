@@ -8,6 +8,7 @@ var awards
 var itemRoot
 var loot = {}
 
+
 func _init():
 	identity = Globals.Things.Enemy
 	
@@ -55,5 +56,8 @@ func wander():
 			move(goal)
 		else:
 			setAction(Action.Idle)
+			finishTurn()
 	else:
 		lastWanderMove += 1
+		setAction(Action.Idle)
+		finishTurn()

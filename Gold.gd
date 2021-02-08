@@ -14,8 +14,9 @@ func activate(node):
 	node.gold += amount
 	self.queue_free()
 
-# Called when the node enters the scene tree for the first time.
+
 func _ready():
 	self.texture = load("res://assets/items/bag_coins.png")
-	pass # Replace with function body.
+	self.texture.set_flags(2)
+
 

@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/wall_bottom_left.png-505c8e02d98fd810e0ab776bc280b542.stex"
+path="res://.import/swirly_right.png-4ffac14270998f05f90d103fe32deac8.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/tiles/wall/wall_bottom_left.png"
-dest_files=[ "res://.import/wall_bottom_left.png-505c8e02d98fd810e0ab776bc280b542.stex" ]
+source_file="res://assets/ui/swirly_right.png"
+dest_files=[ "res://.import/swirly_right.png-4ffac14270998f05f90d103fe32deac8.stex" ]
 
 [params]
 
