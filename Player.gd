@@ -4,6 +4,11 @@ var InventoryItem = preload("res://InventoryItem.tscn")
 
 const INVENTORY_SIZE = 16
 const INPUT_DELAY = 0.1
+const hudLeft = './Camera2D/HudLayer/CharacterSheet/Page/PageRows/InnerPage/PageColumns/LeftSide/'
+const hudRight = './Camera2D/HudLayer/CharacterSheet/Page/PageRows/InnerPage/PageColumns/RightSide/'
+const equipmentUi = hudLeft + 'CharacterContainer/CenterContainer/Equipment/'
+const details = hudRight + 'Details/'
+const inventoryUi = hudRight + "InventoryBackground/MarginContainer/Inventory/"
 
 var inputWait = 0
 var visibleTiles = []
@@ -59,22 +64,24 @@ var equipmentNodeParent = {
 func _init():
 	levelThreshold = calculateLevelThreshold()
 	actionAnimations = ["Idle", "Move", "Move"]
-	animationDurations = [10, 0.3, 0.2]
+	animationDurations = [10, 0.2, 0.2]
 	health = 10
 	maxHealth = 10
 	visionRange = 6
 	identity = Globals.Things.Player
-	defenses = { Globals.DamageType.Physical: 0 }
+	#Physical, Fire, Water, Holy, Arcane, Dark
+	defenses = { Globals.DamageType.Physical: 0, Globals.DamageType.Fire: 0, Globals.DamageType.Water: 0, Globals.DamageType.Arcane: 0, Globals.DamageType.Holy: 0, Globals.DamageType.Dark: 0}
 	attacks = {
 		"basic": {
-			"damage": [{ "type": Globals.DamageType.Physical, "damage":[1,1]}],
+			"damage": [{ "type": Globals.DamageType.Physical, "damage": [1,1] },  { "type": Globals.DamageType.Fire, "damage":[1,1]}],
+			
 			"type": Globals.AttackType.Melee
 		}
 	}
 	
 func setUnarmed(): 
 	attacks['basic'] = {
-		"damage": [{ "type": Globals.DamageType.Physical, "damage":[1,1]}],
+		"damage": [{ "type": Globals.DamageType.Physical, "damage":[1,1] }, { "type": Globals.DamageType.Fire, "damage":[1,1]}],
 		"type": Globals.AttackType.Melee
 	}
 
@@ -106,19 +113,13 @@ func checkForSpace():
 	
 func _ready():
 	FogMap = get_node("../Fog")
-	HealthBar = get_node("./Camera2D/HudLayer/Hud/HealthbarContainer/HealthGauge")
-	inventory = get_node("./Camera2D/HudLayer/CharacterSheet/Page/PageRows/InnerPage/PageColumns/RightSide/InventoryBackground/MarginContainer/Inventory")
-	equipmentNodeParent[Globals.EquipmentType.MainHand] = get_node('./Camera2D/HudLayer/CharacterSheet/Page/PageRows/InnerPage/PageColumns/LeftSide/CharacterContainer/CenterContainer/Equipment/MainHand')
-	equipmentNodeParent[Globals.EquipmentType.OffHand] = get_node('./Camera2D/HudLayer/CharacterSheet/Page/PageRows/InnerPage/PageColumns/LeftSide/CharacterContainer/CenterContainer/Equipment/OffHand')
-	equipmentNodeParent[Globals.EquipmentType.Ranged] = get_node('./Camera2D/HudLayer/CharacterSheet/Page/PageRows/InnerPage/PageColumns/LeftSide/CharacterContainer/CenterContainer/Equipment/Ranged')
-	equipmentNodeParent[Globals.EquipmentType.Head] = get_node('./Camera2D/HudLayer/CharacterSheet/Page/PageRows/InnerPage/PageColumns/LeftSide/CharacterContainer/CenterContainer/Equipment/Head')
-	equipmentNodeParent[Globals.EquipmentType.Chest] = get_node('./Camera2D/HudLayer/CharacterSheet/Page/PageRows/InnerPage/PageColumns/LeftSide/CharacterContainer/CenterContainer/Equipment/Chest')
-	equipmentNodeParent[Globals.EquipmentType.Hands] = get_node('./Camera2D/HudLayer/CharacterSheet/Page/PageRows/InnerPage/PageColumns/LeftSide/CharacterContainer/CenterContainer/Equipment/Hands')
-	equipmentNodeParent[Globals.EquipmentType.Pants] = get_node('./Camera2D/HudLayer/CharacterSheet/Page/PageRows/InnerPage/PageColumns/LeftSide/CharacterContainer/CenterContainer/Equipment/Pants')
-	equipmentNodeParent[Globals.EquipmentType.LeftRing] = get_node('./Camera2D/HudLayer/CharacterSheet/Page/PageRows/InnerPage/PageColumns/LeftSide/CharacterContainer/CenterContainer/Equipment/LeftRing')
-	equipmentNodeParent[Globals.EquipmentType.RightRing] = get_node('./Camera2D/HudLayer/CharacterSheet/Page/PageRows/InnerPage/PageColumns/LeftSide/CharacterContainer/CenterContainer/Equipment/RightRing')
-	updateStats()
-	updateAttributes()
+	HealthBar = get_node("./Camera2D/HudLayer/Hud/Hud/HealthbarContainer/HealthGauge")
+	inventory = get_node(inventoryUi)
+	
+	for i in Globals.EquipmentType: 
+		equipmentNodeParent[i] = get_node(equipmentUi + i)
+
+	updateSheet()
 	
 func setIsEnemyTurn(turn):
 	isEnemyTurn = turn
@@ -139,7 +140,6 @@ func unequip(item):
 		elif item.equipmentType == Globals.EquipmentType.Chest:
 			removeDefenses(item)
 	
-	
 func equipItem(item):
 	if equipment[item.equipmentType]:
 		unequip(equipment[item.equipmentType])
@@ -153,6 +153,7 @@ func equipItem(item):
 		setAttacks()
 	if item.equipmentType == Globals.EquipmentType.Chest:
 		addDefenses(item)
+	updateSheet()
 			
 func setAttacks():
 	attacks['basic'] = equipment[Globals.EquipmentType.MainHand]['details']['basic']
@@ -161,22 +162,58 @@ func updateStats():
 	HealthBar.max_value = maxHealth
 	HealthBar.value = health
 	
+func updateSheet(): 
+	updateStats()
+	updateAttributes()
+	updateDetails()
+	
 func updateAttributes():
 	for attr in attributeNames:
-		var freePointsLabel = get_node('./Camera2D/HudLayer/CharacterSheet/Page/PageRows/InnerPage/PageColumns/LeftSide/StatsContainer/VBoxContainer/HBoxContainer/points')
-		var uiLabel = get_node("./Camera2D/HudLayer/CharacterSheet/Page/PageRows/InnerPage/PageColumns/LeftSide/StatsContainer/VBoxContainer/Stats/" + attr + "Container/" + attr + "Value")
+		var freePointsLabel = get_node(hudLeft + 'StatsContainer/VBoxContainer/HBoxContainer/points')
+		var uiLabel = get_node(hudLeft + "StatsContainer/VBoxContainer/Stats/" + attr + "Container/" + attr + "Value")
 		uiLabel.text = str(attributes[attr])
 		freePointsLabel.text = str(attributePoints)
+	
+func updateDetails():
+	var damage = get_node(details + 'row1/left/totalDamage/valueP/value')
+	var totalDamageMin = 0
+	var totalDamageMax = 0
+	
+	# Attack
+	for i in Globals.DamageType.keys():
+		var value_node = get_node(details + 'row1/left/sub/' + i + '/MarginContainer/Label2')
+		var foundDamageValue = findDamageType(attacks['basic']['damage'], i)
+		if foundDamageValue:
+			value_node.text = str(foundDamageValue[0]) + " - " + str(foundDamageValue[1])
+			totalDamageMin += foundDamageValue[0]
+			totalDamageMax += foundDamageValue[1]
+		else:
+			value_node.text = "0 - 0"
+	
+	# Defense 	
+	for i in Globals.DamageType.keys():
+		var value_node = get_node(details + 'row1/right/sub/' + i + '/MarginContainer/Label2')
+		value_node.text = str(defenses[i])
+		
+	damage.text = str(totalDamageMin) + " - " + str(totalDamageMax)
+			
+			
+func findDamageType(dmgArray, damageType): 
+	for i in dmgArray:
+		print(i)
+		if i['type'] == damageType:
+			print('found')
+			return i['damage']
+	return null
 	
 func addAttribute(attr, value):
 	if attributePoints > 0:
 		attributePoints -= value
 		attributes[attr] += value
-		updateAttributes()
 		if attr == 'strength':
 			calculateMaxHealth()
 			heal(value)
-			updateStats()
+	updateSheet()
 
 func heal(value):
 	var newHealthValue = health + value

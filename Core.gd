@@ -27,7 +27,6 @@ func _ready():
 	Globals.rng.randomize()
 	Floor = get_node("Floor")
 	Walls = get_node("Walls")
-	stepLabel = get_node("Label")
 	FogMap = get_node("Fog")
 	DebugTileMap = get_node("Debug")
 	Player = get_node('Player')
@@ -43,7 +42,7 @@ func _input(event):
 		reloadLevel()
 	if event.is_action('C') && inputDelay > 0.15:
 		inputDelay = 0
-		get_node("Player/Camera2D/HudLayer/CharacterSheet").visible = !get_node("Player/Camera2D/HudLayer/CharacterSheet").visible
+		showCharacterSheet()
 		
 func _process(delta):
 	inputDelay += delta
@@ -91,8 +90,10 @@ func combat(source, attack, victim):
 		if 'type' in attack && attack['type'] == Globals.AttackType.Melee:
 			if source.attributes:
 				chosenDamage += source.attributes['strength']
-		
-		var damageTaken = round(chosenDamage - victim.defenses[damages['type']])
+		var defense = 0 
+		if damages['type'] in victim.defenses:
+			defense = victim.defenses[damages['type']]
+		var damageTaken = round(chosenDamage - defense)
 		if damageTaken < 0:
 			damageTaken = 0
 		totalDamage += damageTaken
@@ -494,10 +495,18 @@ func activateFloorInteractables(node: Unit):
 		if node.identity == Globals.Things.Player:
 			if item.identity == Globals.Things.Gold:
 				item.activate(node)
+				
+func showCharacterSheet():
+	var hud = get_node("Player/Camera2D/HudLayer/Hud")
+	var characterSheet = get_node("Player/Camera2D/HudLayer/CharacterSheet")
+	hud.visible = !hud.visible;
+	characterSheet.visible = !characterSheet.visible
 
 func _on_Button_pressed():
+	get_node("Player/Camera2D/HudLayer/Hud").visible = false;
 	get_node("Player/Camera2D/HudLayer/CharacterSheet").visible = true;
 	
 func _on_ExitCharacterSheet_pressed():
+	get_node("Player/Camera2D/HudLayer/Hud").visible = true;
 	get_node("Player/Camera2D/HudLayer/CharacterSheet").visible = false
 

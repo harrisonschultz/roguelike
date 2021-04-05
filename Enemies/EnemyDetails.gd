@@ -3,14 +3,14 @@ extends Node
 var enemies = {
 	"slime": {
 		"actionAnimations": ["Idle", "Move", "Move"],
-		"animationDurations": [10, 0.3, 0.3],
+		"animationDurations": [10, 0.2, 0.2],
 		"health": 3,
 		"visionRange": 4,
 		"attackRange": 1,
 		"awards":{
 			"experience": 1
 		},
-		"defenses": { Globals.DamageType.Physical: 0},
+		"defenses": { Globals.DamageType.Physical: 0 },
 		"attacks": {
 			"basic": {
 					"damage": [{ "type": Globals.DamageType.Physical, "damage": [1,1]}]

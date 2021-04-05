@@ -36,6 +36,7 @@ func showDetails(show):
 
 func _ready():
 	toolTip = get_node("./CanvasLayer/Popup")
+	toolTip.visible = false
 	var root = get_tree().get_root()
 	var core = root.get_node("Root")
 	player = core.get_node("Player")

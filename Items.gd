@@ -20,5 +20,5 @@ var items = [{
 	'sprite': "res://assets/items/shirt.png",
 	'itemType': Globals.ItemType.Equipment,
 	'equipmentType': Globals.EquipmentType.Chest,
-	"defenses": { Globals.DamageType.Physical: 1},
+	"defenses": { Globals.DamageType.Physical: 1}
 }]
