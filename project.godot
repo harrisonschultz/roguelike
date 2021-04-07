@@ -80,6 +80,7 @@ EnemyDetails="*res://Enemies/EnemyDetails.gd"
 Movement="*res://Movement.gd"
 Items="*res://Items.gd"
 Loot="*res://Loot.gd"
+Utilities="*res://Utilities.gd"
 
 [display]
 

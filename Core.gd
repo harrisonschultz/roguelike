@@ -104,6 +104,27 @@ func combat(source, attack, victim):
 	
 	if victim.health <= 0:
 		victim.die()
+		
+func getDamageRange(source, attack, type = null):
+	var damageRange = [0, 0]
+	
+	for damages in attack['damage']:
+		if !type || (type && type == damages['type']):
+			damageRange[0] += damages['damage'][0]
+			damageRange[1] += damages['damage'][1]
+			var chosenDamage = Globals.rng.randi_range(damages['damage'][0], damages['damage'][1])
+			
+			# Add Bonuses
+			if 'type' in attack && attack['type'] == Globals.AttackType.Melee && damages['type'] == Globals.DamageType.Physical:
+				if source.attributes:
+					damageRange[0] += source.attributes['strength']
+					damageRange[1] += source.attributes['strength']
+	
+	return damageRange
+				
+func getRandomDamage(source, attack):
+	var damageRange = getDamageRange(source, attack)
+	return Globals.rng.randi_range(damageRange[0], damageRange[1])
 	
 func initializeMap():
 	map = []
@@ -356,7 +377,6 @@ func setHallway(col, row, direction):
 		
 		for x in range(bottomLeft.x+1, topRight.x):
 			for y in range(topLeft.y, bottomLeft.y +2):
-				print(str(x)+", "+str(y))
 				map[x][y] = Globals.Map.Hallway
 				Walls.set_cell(x, y, -1)
 				Floor.set_cell(x, y, 1)
@@ -499,7 +519,7 @@ func activateFloorInteractables(node: Unit):
 func showCharacterSheet():
 	var hud = get_node("Player/Camera2D/HudLayer/Hud")
 	var characterSheet = get_node("Player/Camera2D/HudLayer/CharacterSheet")
-	hud.visible = !hud.visible;
+	hud.visible = characterSheet.visible;
 	characterSheet.visible = !characterSheet.visible
 
 func _on_Button_pressed():

@@ -1,8 +1,13 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=11 format=2]
 
 [ext_resource path="res://Item.gd" type="Script" id=1]
-[ext_resource path="res://assets/ui/CharacterSheet.png" type="Texture" id=2]
+[ext_resource path="res://assets/ui/paper_540x620.png" type="Texture" id=2]
 [ext_resource path="res://assets/items/sword.png" type="Texture" id=3]
+[ext_resource path="res://assets/ui/swirly_left.png" type="Texture" id=4]
+[ext_resource path="res://assets/ui/swirly_right.png" type="Texture" id=5]
+[ext_resource path="res://titleFont.tres" type="DynamicFont" id=6]
+[ext_resource path="res://stats.tscn" type="PackedScene" id=7]
+[ext_resource path="res://subFont.tres" type="DynamicFont" id=8]
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 8, 8 )
@@ -21,7 +26,7 @@ position = Vector2( 8.0084, 8.0084 )
 shape = SubResource( 1 )
 
 [node name="CanvasLayer" type="Node2D" parent="."]
-z_index = 10
+z_index = 2
 z_as_relative = false
 
 [node name="Popup" type="PanelContainer" parent="CanvasLayer"]
@@ -31,20 +36,97 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 16.0
 margin_top = 16.0
-margin_right = 56.0
-margin_bottom = 56.0
+margin_right = 106.0
+margin_bottom = 136.0
+size_flags_horizontal = 4
+size_flags_vertical = 4
 custom_styles/panel = SubResource( 2 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="NinePatchRect" type="NinePatchRect" parent="CanvasLayer/Popup"]
-margin_right = 40.0
-margin_bottom = 40.0
+margin_right = 90.0
+margin_bottom = 120.0
+size_flags_horizontal = 5
+size_flags_vertical = 5
 texture = ExtResource( 2 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/Popup/NinePatchRect"]
+margin_left = 3.0
+margin_right = 87.0
+margin_bottom = 118.0
+size_flags_horizontal = 4
+size_flags_vertical = 4
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/Popup/NinePatchRect/MarginContainer"]
+margin_right = 84.0
+margin_bottom = 118.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Title" type="HBoxContainer" parent="CanvasLayer/Popup/NinePatchRect/MarginContainer/VBoxContainer"]
+margin_right = 84.0
+margin_bottom = 16.0
+custom_constants/separation = 6
+alignment = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/Popup/NinePatchRect/MarginContainer/VBoxContainer/Title"]
+margin_right = 22.0
+margin_bottom = 16.0
+size_flags_horizontal = 3
+
+[node name="TextureButton" type="TextureRect" parent="CanvasLayer/Popup/NinePatchRect/MarginContainer/VBoxContainer/Title/MarginContainer"]
+margin_right = 22.0
+margin_bottom = 16.0
+texture = ExtResource( 4 )
+expand = true
+stretch_mode = 6
+
+[node name="Label" type="Label" parent="CanvasLayer/Popup/NinePatchRect/MarginContainer/VBoxContainer/Title"]
+margin_left = 28.0
+margin_right = 55.0
+margin_bottom = 16.0
+custom_fonts/font = ExtResource( 6 )
+custom_colors/font_color = Color( 0.482353, 0.243137, 0.0705882, 1 )
+text = "SWORD"
+
+[node name="MarginContainer2" type="MarginContainer" parent="CanvasLayer/Popup/NinePatchRect/MarginContainer/VBoxContainer/Title"]
+margin_left = 61.0
+margin_right = 84.0
+margin_bottom = 16.0
+size_flags_horizontal = 3
+
+[node name="TextureButton" type="TextureRect" parent="CanvasLayer/Popup/NinePatchRect/MarginContainer/VBoxContainer/Title/MarginContainer2"]
+margin_right = 23.0
+margin_bottom = 16.0
+texture = ExtResource( 5 )
+expand = true
+stretch_mode = 6
+
+[node name="Subtitle" type="Label" parent="CanvasLayer/Popup/NinePatchRect/MarginContainer/VBoxContainer"]
+margin_top = 20.0
+margin_right = 84.0
+margin_bottom = 32.0
+custom_fonts/font = ExtResource( 8 )
+custom_colors/font_color = Color( 0.482353, 0.243137, 0.0705882, 1 )
+
+[node name="Stats" parent="CanvasLayer/Popup/NinePatchRect/MarginContainer/VBoxContainer" instance=ExtResource( 7 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_top = 36.0
+margin_right = 84.0
+margin_bottom = 118.0
 [connection signal="input_event" from="ItemSprite" to="." method="_on_ItemSprite_input_event"]
 [connection signal="mouse_entered" from="ItemSprite" to="." method="_on_ItemSprite_mouse_entered"]
 [connection signal="mouse_exited" from="ItemSprite" to="." method="_on_ItemSprite_mouse_exited"]

@@ -70,10 +70,10 @@ func _init():
 	visionRange = 6
 	identity = Globals.Things.Player
 	#Physical, Fire, Water, Holy, Arcane, Dark
-	defenses = { Globals.DamageType.Physical: 0, Globals.DamageType.Fire: 0, Globals.DamageType.Water: 0, Globals.DamageType.Arcane: 0, Globals.DamageType.Holy: 0, Globals.DamageType.Dark: 0}
+	defenses = { Globals.DamageType.Physical: 0, Globals.DamageType.Fire: 0, Globals.DamageType.Water: 0, Globals.DamageType.Arcane: 0, Globals.DamageType.Holy: 0, Globals.DamageType.Unholy: 0}
 	attacks = {
 		"basic": {
-			"damage": [{ "type": Globals.DamageType.Physical, "damage": [1,1] },  { "type": Globals.DamageType.Fire, "damage":[1,1]}],
+			"damage": [{ "type": Globals.DamageType.Physical, "damage": [1,1] }],
 			
 			"type": Globals.AttackType.Melee
 		}
@@ -81,7 +81,7 @@ func _init():
 	
 func setUnarmed(): 
 	attacks['basic'] = {
-		"damage": [{ "type": Globals.DamageType.Physical, "damage":[1,1] }, { "type": Globals.DamageType.Fire, "damage":[1,1]}],
+		"damage": [{ "type": Globals.DamageType.Physical, "damage":[1,1] }],
 		"type": Globals.AttackType.Melee
 	}
 
@@ -181,28 +181,25 @@ func updateDetails():
 	
 	# Attack
 	for i in Globals.DamageType.keys():
-		var value_node = get_node(details + 'row1/left/sub/' + i + '/MarginContainer/Label2')
-		var foundDamageValue = findDamageType(attacks['basic']['damage'], i)
-		if foundDamageValue:
-			value_node.text = str(foundDamageValue[0]) + " - " + str(foundDamageValue[1])
-			totalDamageMin += foundDamageValue[0]
-			totalDamageMax += foundDamageValue[1]
-		else:
-			value_node.text = "0 - 0"
+		var value_node = get_node(details + 'row1/left/Sub/' + i + '/Label')
+		var damageRange = core.getDamageRange(self, attacks['basic'], i)
+		value_node.text = str(damageRange[0]) + " - " + str(damageRange[1])
+		totalDamageMin += damageRange[0]
+		totalDamageMax += damageRange[1]
 	
 	# Defense 	
 	for i in Globals.DamageType.keys():
-		var value_node = get_node(details + 'row1/right/sub/' + i + '/MarginContainer/Label2')
+		var value_node = get_node(details + 'row1/right/Sub/' + i + '/Label')
 		value_node.text = str(defenses[i])
 		
 	damage.text = str(totalDamageMin) + " - " + str(totalDamageMax)
 			
 			
 func findDamageType(dmgArray, damageType): 
+	print(dmgArray)
+	print(damageType)
 	for i in dmgArray:
-		print(i)
 		if i['type'] == damageType:
-			print('found')
 			return i['damage']
 	return null
 	

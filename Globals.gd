@@ -21,7 +21,7 @@ const DamageType = {
 	Water = 'Water', 
 	Holy = 'Holy', 
 	Arcane = 'Arcane', 
-	Dark = 'Dark',
+	Unholy = 'Unholy',
 }
 const EquipmentType = { 
 	MainHand = 'MainHand',
