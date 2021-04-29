@@ -530,3 +530,12 @@ func _on_ExitCharacterSheet_pressed():
 	get_node("Player/Camera2D/HudLayer/Hud").visible = true;
 	get_node("Player/Camera2D/HudLayer/CharacterSheet").visible = false
 
+func loadAbility(ability: String):
+	return load("res://Abilities/" + ability + ".tscn")		
+
+func performAbility(abilityName: String, source, target):
+		var abilityScene = loadAbility(abilityName)
+		var ability = abilityScene.instance()
+		ability.init(source, target)
+		self.add_child(ability)
+		ability.play()

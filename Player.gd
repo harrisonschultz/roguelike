@@ -22,6 +22,7 @@ var maxHealth = 10
 var levelThreshold = 0
 var attributePoints = 0
 var gold = 0
+var enemyClickAction = "Engulf"
 var inventory 
 var attributes = {
 	"strength": 0,
@@ -107,7 +108,13 @@ func convertToInventoryItem(item):
 func addToInventory(item):
 	if checkForSpace():
 		inventory.add_child(item)
-	
+		
+
+		
+func onEnemyClick(enemy: Enemy):
+	if enemyClickAction: 
+		core.performAbility(enemyClickAction, self, enemy)
+
 func checkForSpace():
 	return inventory.get_child_count() < INVENTORY_SIZE
 	

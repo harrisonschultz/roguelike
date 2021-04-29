@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/explosion_anim_spritesheet.png-4c5bb5fced16cf7eed7fc1c19acccd9a.stex"
+path="res://.import/fire_swirl_background2.png-afb7c538847f2c54876b7b2fb4dac3ef.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/explosion_anim_spritesheet.png"
-dest_files=[ "res://.import/explosion_anim_spritesheet.png-4c5bb5fced16cf7eed7fc1c19acccd9a.stex" ]
+source_file="res://assets/ui/fire_swirl_background2.png"
+dest_files=[ "res://.import/fire_swirl_background2.png-afb7c538847f2c54876b7b2fb4dac3ef.stex" ]
 
 [params]
 
@@ -20,7 +20,7 @@ compress/hdr_mode=0
 compress/bptc_ldr=0
 compress/normal_map=0
 flags/repeat=0
-flags/filter=false
+flags/filter=true
 flags/mipmaps=false
 flags/anisotropic=false
 flags/srgb=2

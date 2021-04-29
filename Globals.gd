@@ -15,6 +15,9 @@ enum ItemType { Consumable, Equipment }
 const tile_size = 16
 const directionsArray = [ Directions.Up, Directions.Right, Directions.Down, Directions.Left ]
 const LEVEL_SIZE = 320
+const Layer = {
+	Ability = 5
+}
 const DamageType = {
 	Physical = 'Physical',
 	Fire = 'Fire', 

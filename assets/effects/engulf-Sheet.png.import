@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/explosion_anim_spritesheet.png-4c5bb5fced16cf7eed7fc1c19acccd9a.stex"
+path="res://.import/engulf-Sheet.png-8a28bf7da2aa89da63e2637b7d54bd17.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/explosion_anim_spritesheet.png"
-dest_files=[ "res://.import/explosion_anim_spritesheet.png-4c5bb5fced16cf7eed7fc1c19acccd9a.stex" ]
+source_file="res://assets/effects/engulf-Sheet.png"
+dest_files=[ "res://.import/engulf-Sheet.png-8a28bf7da2aa89da63e2637b7d54bd17.stex" ]
 
 [params]
 

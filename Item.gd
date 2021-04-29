@@ -86,7 +86,7 @@ func _on_ItemSprite_mouse_exited():
 	showDetails(false)
 
 func _on_ItemSprite_input_event(viewport, event, shape_idx):
-	if event.is_action("LeftClick"):
+	if event.is_action("LeftClick") and !event.pressed:
 		itemRoot.remove_child(self)
 		player.addToInventory(player.convertToInventoryItem(self))
 

@@ -8,7 +8,6 @@ var awards
 var itemRoot
 var loot = {}
 
-
 func _init():
 	identity = Globals.Things.Enemy
 	
@@ -20,7 +19,14 @@ func init(details, position):
 func _ready():
 	player = core.get_node("Player")
 	itemRoot = core.get_node("ItemRoot")
+	# Make this sprite clickable
+	var clickable = preload("res://../Clickable.tscn")
+	var clickable_instance = clickable.instance()
+	self.add_child(clickable_instance)
 	selectAction()
+	
+func onClick():
+	player.onEnemyClick(self)
 
 func takeTurn():
 	.takeTurn()
