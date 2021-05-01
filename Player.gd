@@ -266,7 +266,7 @@ func move(direction):
 	else:
 		var thing = Movement.whatIsOnTile(destination)
 		if thing:
-			if thing.identity == Globals.Things.Enemy:
+			if thing.identity == Globals.Things.Enemy && thing.isCollidable():
 				attack(direction, thing, 'basic')
 				
 func attack(direction, attackTarget, attack):

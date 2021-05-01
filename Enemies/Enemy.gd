@@ -13,6 +13,7 @@ func _init():
 	
 func init(details, position):
 	.init(details, position)
+	self.z_index = Globals.Layer.Enemy
 	awards = details['awards']
 	loot = details['loot']
 

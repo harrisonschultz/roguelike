@@ -2,7 +2,7 @@ extends AnimatedSprite
 
 class_name Unit
 
-enum Action { Idle, Move, Attack }
+enum Action { Idle, Move, Attack, Death }
 
 var animationTimeElapsed: float = 0;
 var action = Action.Idle
@@ -14,6 +14,8 @@ var animationDurations
 var actionAnimations
 var visionRange
 var attackRange
+var exists = true
+var stunned = false
 var lastKnownPlayerPosition
 var previousPosition
 var actionsFinished = true
@@ -45,9 +47,12 @@ func init(details, position):
 	attacks = details['attacks']
 
 func _process(delta):
-	if takingTurn:
-		animationTimeElapsed += delta
-		
+	animationTimeElapsed += delta
+	if action == Action.Death:
+		if animationTimeElapsed >= animationDurations[Action.Death]:
+			finishedDeath()
+				
+	if takingTurn and !stunned:
 		# Movement
 		if action == Action.Move:
 			if animationTimeElapsed < animationDurations[Action.Move]:
@@ -71,10 +76,24 @@ func _process(delta):
 					Movement.move(self, destination, distance)
 			else:
 				finishedAttack()
+				
+		
 		
 func die():
+	stunned = true
+	setCollidable(false)
+	setAction(Action.Death)
+	setAnimation(actionAnimations[action])
+	
+	
+func setCollidable(collide: bool):
+	exists = collide
+	
+func isCollidable():
+	return exists
+	
+func finishedDeath():
 	self.queue_free()
-
 	
 func findPathToNode(goal):
 	var astar = AStar2D.new()
@@ -191,3 +210,5 @@ func finishedAttack():
 	dealtDamage = false;
 	animationFinished()
 	finishTurn()
+
+

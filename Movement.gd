@@ -63,7 +63,7 @@ func checkTileToMove(destination):
 	var nodes = enemyRoot.get_children()
 	nodes.append(player)
 	for node in nodes:
-		if worldToMap(node.position) == destination:
+		if node.isCollidable() and worldToMap(node.position) == destination:
 			unitOnDestination = true
 			break;
 	

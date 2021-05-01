@@ -53,7 +53,8 @@ func playPlayerTurn():
 func playEnemyTurn():
 	var units = EnemyRoot.get_children()
 	for unit in units:
-		unit.takeTurn()
+		if unit.exists:
+			unit.takeTurn()
 		
 func finishEnemyTurn():
 	# Allow player to act.
@@ -63,7 +64,7 @@ func checkForEnemyTurnFinished():
 	var isTakingTurn = false
 	var units = EnemyRoot.get_children()
 	for unit in units:
-		if unit.takingTurn == true && unit.inCombat:
+		if unit.takingTurn == true && unit.inCombat && !unit.stunned:
 			isTakingTurn = true
 			break
 	return isTakingTurn	

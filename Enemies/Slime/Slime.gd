@@ -15,4 +15,3 @@ extends Enemy
 	#moveAction = Globals.directionsArray[direction]
 	#getDestTile()
 	#changeState(State.Move)
-	

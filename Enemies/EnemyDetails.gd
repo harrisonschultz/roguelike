@@ -2,8 +2,8 @@ extends Node
 
 var enemies = {
 	"slime": {
-		"actionAnimations": ["Idle", "Move", "Move"],
-		"animationDurations": [10, 0.2, 0.2],
+		"actionAnimations": ["Idle", "Move", "Move", "Death"],
+		"animationDurations": [10, 0.2, 0.2, 1.4],
 		"health": 3,
 		"visionRange": 4,
 		"attackRange": 1,
