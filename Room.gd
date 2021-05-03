@@ -19,13 +19,18 @@ var exits = [null,null,null,null]
 var map
 var walls
 var floors
+var propRoot
 var debugTileGlobals
+var roomType
+var props = []
 
 enum Sides { Top, Right, Bottom, Left }
 var ExitCounterpart = [Sides.Bottom, Sides.Left, Sides.Top, Sides.Right]
+var Prop = load('res://Props/Prop.tscn')
+var FloorStyles = load('res://FloorStyles.gd')
+var floorStyles = FloorStyles.new()
 
-
-func _init(bl, h, w, Map, WallsTileMap, FloorTileMap, DebugTileMap, ExitSize):
+func _init(bl, h, w, Map, WallsTileMap, FloorTileMap, PropRoot, DebugTileMap, ExitSize):
 	bottomLeft = bl
 	map = Map
 	walls = WallsTileMap
@@ -33,6 +38,7 @@ func _init(bl, h, w, Map, WallsTileMap, FloorTileMap, DebugTileMap, ExitSize):
 	gridMaxX = map.size() -1
 	gridMaxY = map[0].size() -1
 	exitSize = ExitSize
+	propRoot = PropRoot
 	height = h
 	width = w
 	topLeft = Vector2(bottomLeft.x, bottomLeft.y - (height - 1))
@@ -76,6 +82,94 @@ func changeMapTile(x, y, type):
 		return true
 	return false
 	
+func getCenter():
+	var centerHeight = round(height/2)
+	var centerWidth = round(width/2)
+	
+	var centerPoint = Vector2(topLeft.x + centerWidth , topLeft.y + centerHeight + 1)
+	
+	return centerPoint
+
+	
+func setType(type):
+	roomType = type
+	
+func addRandomInteractables():
+	# Make some barrels
+	props.append(spawnProp( Globals.Props.Barrel, getRandomFloorLocation(), true))
+	
+func decorate():
+	applyFloorStyle(getRandomFloorStyle())
+	addRandomInteractables()
+	if roomType:
+		# Start with permanent prop spawns
+		if roomType.permanent:
+			for p in roomType.permanent:
+				var collides = false
+				if 'collision' in p:
+					collides = true
+				props.append(spawnProp(p.asset, p.location, collides, true))
+		
+		if roomType.walls:
+			for w in roomType.walls:
+				var flipX = false
+				var flipY = false
+				if "flipX" in w:
+					flipX = w.flipX
+				if "flipY" in w:
+					flipY = w.flipY
+				var loc = determineLocation(w.location)
+				walls.set_cell(loc.x, loc.y, w.asset, flipX, flipY)
+				
+		if roomType.floors:
+			for f in roomType.floors:
+				var flipX = false
+				var flipY = false
+				
+				if "flipX" in f:
+					flipX = f.flipX
+				if "flipY" in f:
+					flipY = f.flipY
+				var loc = determineLocation(f.location)
+				floors.set_cell(loc.x, loc.y, f.asset, flipX, flipY)
+	addPropsToScene()
+
+func addPropsToScene():
+	for p in props:
+		propRoot.add_child(p)		
+	
+func spawnProp(sprite, location, collision, fromConfig = false):
+	if fromConfig:
+		location = determineLocation(location)
+
+	var prop = Prop.instance()
+	prop.init(sprite, Movement.mapToWorld(location), collision)
+	return prop
+	
+func getRandomFloorLocation():
+	return Vector2(Globals.rng.randi_range(topLeft.x+1, bottomRight.x-1), Globals.rng.randi_range(topLeft.y+3, bottomRight.y))
+
+func determineLocation(location):
+	var x = location.x
+	var y = location.y
+	var newLocation = []
+	
+	for axis in location:
+		var relativeLocation = location[axis]
+
+		if relativeLocation.from == 'center':
+			newLocation.append(getCenter()[axis] + relativeLocation.mod)
+		elif relativeLocation.from == 'topLeft':
+			newLocation.append(topLeft[axis] + relativeLocation.mod)
+		elif relativeLocation.from == 'topRight':
+			newLocation.append(topRight[axis] + relativeLocation.mod)
+		elif relativeLocation.from == 'bottomLeft':
+			newLocation.append(bottomLeft[axis] + relativeLocation.mod)
+		elif relativeLocation.from == 'bottomRight':
+			newLocation.append(bottomRight[axis] + relativeLocation.mod)
+	
+	return Vector2(newLocation[0], newLocation[1])
+	
 func buildRoom():
 		var yRange = range(topRight.y, bottomRight.y + 1)
 		var xRange = range(topLeft.x, topRight.x + 1)
@@ -106,7 +200,7 @@ func buildRoom():
 						walls.set_cell(x, y, Globals.WallTiles.BottomRight)
 						continue
 					else:
-						floors.set_cell(x, y, 1)
+						floors.set_cell(x, y, Globals.FloorTiles.Full)
 						walls.set_cell(x, y, Globals.WallTiles.Bottom)
 						continue
 				
@@ -122,11 +216,12 @@ func buildRoom():
 						continue
 					# Top Walls
 					elif y == topRight.y + 1 && x > topLeft.x && x < topRight.x && changeMapTile(x, y, Globals.Map.Edge):
-						walls.set_cell(x,y, Globals.WallTiles.Wall)
+						var chosenWall = getRandomWall()
+						walls.set_cell(x,y, chosenWall[0], chosenWall[1])
 						continue
 					# Everything else
 					else:
-						floors.set_cell(x, y, 1)
+						floors.set_cell(x, y, Globals.FloorTiles.Full)
 	
 func determinePossibleExits():
 	# Look at each side of the room and determine if an exit can exist
@@ -177,10 +272,12 @@ func buildExit(direction, point = null):
 		
 		# Set floor tiles, and remove walls
 		for x in range(exits[Sides.Top].x+1, farEdge.x ):
-			for y in range(exits[Sides.Top].y, farEdge.y + 2 ):
+			for y in range(exits[Sides.Top].y, farEdge.y + 1 ):
 				map[x][y] = Globals.Map.Hallway
 				walls.set_cell(x, y, -1)
-				floors.set_cell(x, y, 1)
+				floors.set_cell(x, y, Globals.FloorTiles.BrokenFour)
+				walls.set_cell(x, y+1, -1)
+				floors.set_cell(x, y+1, Globals.FloorTiles.BrokenFour, false, true)
 				
 	if direction == Sides.Right:
 		var farEdge = Vector2(exits[Sides.Right].x, exits[Sides.Right].y + exitSize -1)
@@ -196,7 +293,7 @@ func buildExit(direction, point = null):
 		for y in range(exits[Sides.Right].y + 2, farEdge.y + 1):
 			map[exits[Sides.Right].x][y] = Globals.Map.Hallway
 			walls.set_cell(exits[Sides.Right].x, y, -1)
-			floors.set_cell(exits[Sides.Right].x, y, 1)
+			floors.set_cell(exits[Sides.Right].x, y, Globals.FloorTiles.BrokenTwo)
 			
 		walls.set_cell(farEdge.x, farEdge.y, Globals.WallTiles.BottomInnerLeft)
 
@@ -213,9 +310,9 @@ func buildExit(direction, point = null):
 		
 		# Set floor tiles, and remove walls
 		for x in range(exits[Sides.Bottom].x+1, farEdge.x ):
-				map[x][exits[Sides.Bottom].y] = Globals.Map.Hallway
-				walls.set_cell(x, exits[Sides.Bottom].y, -1)
-				floors.set_cell(x, exits[Sides.Bottom].y, 1)
+			map[x][exits[Sides.Bottom].y] = Globals.Map.Hallway
+			walls.set_cell(x, exits[Sides.Bottom].y, -1)
+			floors.set_cell(x, exits[Sides.Bottom].y, Globals.FloorTiles.Full)
 				
 	if direction == Sides.Left:
 		var farEdge = Vector2(exits[Sides.Left].x, exits[Sides.Left].y + exitSize -1)
@@ -232,15 +329,62 @@ func buildExit(direction, point = null):
 		for y in range(exits[Sides.Left].y+2, farEdge.y + 1):
 			map[exits[Sides.Left].x][y] = Globals.Map.Hallway
 			walls.set_cell(exits[Sides.Left].x, y, -1)
-			floors.set_cell(exits[Sides.Left].x, y, 1)
+			floors.set_cell(exits[Sides.Left].x, y, Globals.FloorTiles.BrokenTwo, true)
 			
 		walls.set_cell(farEdge.x, farEdge.y, Globals.WallTiles.BottomInnerRight)
+		
+		
+func getRandomWall():
+	var candidates = [Globals.WallTiles.Crack, Globals.WallTiles.WallMissingBricks, Globals.WallTiles.WallMissingBricks, Globals.WallTiles.WallMissingBricks]
+	
+	# Decide if we are going to use anything other than the default
+	# 25% chance
+	if (Globals.rng.randi_range(0, 100) <= 33):
+		# Randomly flip horizontally
+		if (Globals.rng.randi_range(0, 100) <= 50):
+			return [candidates[Globals.rng.randi_range(0, candidates.size() - 1)], true]
+		else:
+			return [candidates[Globals.rng.randi_range(0, candidates.size() - 1)], false]
+	else:
+		return [Globals.WallTiles.Wall, false]
+		
+func getRandomFloorStyle():
+	var candidates = []
+	
+	for f in floorStyles.floorStyles:
+		candidates.append(floorStyles.floorStyles[f])
 
-# Called when the node enters the scene tree for the first time.
-func _ready():
-	pass # Replace with function body.
+	return candidates[Globals.rng.randi_range(0, candidates.size() - 1)]
+	
+func createBoxPattern(style):
+	var boxTopLeft = determineLocation(style.descriptors.topLeft)
+	var boxBottomRight = determineLocation(style.descriptors.bottomRight)
+	var floorTiles = []
+	var flipX = false
+	var flipY = false
+	
+	if 'flipX' in style:
+		flipX = style.flipX
+	if 'flipY' in style:
+		flipY = style.flipY
 
+	for x in range(boxTopLeft.x, boxBottomRight.x + 1):
+		for y in range (boxTopLeft.y, boxBottomRight.y + 1):
+			floorTiles.append({location = Vector2(x,y), tile = style.filler, flipX = flipX, flipY = flipY})
+			
+	return floorTiles
+		
+	
+func applyFloorStyle(style):
+	var newTiles = []
+	
+	for pattern in style:
+		if pattern.type == floorStyles.patternType.Box:
+			newTiles += createBoxPattern(pattern)
+	
+	for t in newTiles:
+		floors.set_cell(t.location.x, t.location.y, t.tile, t.flipX, t.flipY)
+		
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-#func _process(delta):
-#	pass
+	
+	

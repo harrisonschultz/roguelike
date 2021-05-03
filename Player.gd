@@ -63,6 +63,7 @@ var equipmentNodeParent = {
 }
 
 func _init():
+	self.z_index = Globals.Layer.Player
 	levelThreshold = calculateLevelThreshold()
 	actionAnimations = ["Idle", "Move", "Move"]
 	animationDurations = [10, 0.2, 0.2]
@@ -203,8 +204,6 @@ func updateDetails():
 			
 			
 func findDamageType(dmgArray, damageType): 
-	print(dmgArray)
-	print(damageType)
 	for i in dmgArray:
 		if i['type'] == damageType:
 			return i['damage']

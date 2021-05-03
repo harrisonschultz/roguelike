@@ -29,6 +29,7 @@ var identity
 var takingTurn := false
 var actions = [{'speed': 25}, { "speed": 50 }, { "speed": 40 } ]
 var inCombat = false
+var debuffs = []
 
 func _ready():
 	var root = get_tree().get_root()
@@ -45,6 +46,9 @@ func init(details, position):
 	defenses = details['defenses']
 	health = details['health']
 	attacks = details['attacks']
+	
+func addDebuff(debuff):
+	debuffs.append(debuff)
 
 func _process(delta):
 	animationTimeElapsed += delta
@@ -167,6 +171,9 @@ func dealDamage():
 	core.combat(self, attacks[chosenAttack], target)
 	dealtDamage = true
 
+func handleDeath():
+	if health < 1:
+		die()
 	
 func move(dest):
 	if Movement.checkTileToMove(dest):
@@ -198,7 +205,25 @@ func animationFinished():
 	self.position.y = round(self.position.y / Globals.tile_size) * Globals.tile_size
 	setAnimation(actionAnimations[Action.Idle])
 	
+func removeDebuff(debuff, index):
+	if (debuff.duration && debuff.duration < 1):
+		debuffs.remove(index)
+		debuff.remove()
+	
+func progressDebuffs():
+	for index in debuffs.size():
+		var debuff = debuffs[index]
+		debuff.affect()
+		debuff.duration -= 1
+		removeDebuff(debuff, index)
+		
+func hurt(dmg):
+	health -= dmg
+	damageTaken()
+	handleDeath()
+	
 func finishTurn():
+	progressDebuffs()
 	takingTurn = false
 	
 func finishedMove():

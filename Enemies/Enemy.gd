@@ -7,19 +7,30 @@ var lastWanderMove = 0
 var awards
 var itemRoot
 var loot = {}
+var healthBarNode = preload("res://../UI/smallHealthbar.tscn")
+var healthBar
+var maxHealth
 
 func _init():
 	identity = Globals.Things.Enemy
+	healthBar = healthBarNode.instance()
+	
 	
 func init(details, position):
 	.init(details, position)
 	self.z_index = Globals.Layer.Enemy
 	awards = details['awards']
 	loot = details['loot']
+	maxHealth = details['health']
+	healthBar.max_value = maxHealth
+	healthBar.value = maxHealth
+	healthBar.visible = false
 
 func _ready():
 	player = core.get_node("Player")
 	itemRoot = core.get_node("ItemRoot")
+	self.add_child(healthBar)
+	
 	# Make this sprite clickable
 	var clickable = preload("res://../Clickable.tscn")
 	var clickable_instance = clickable.instance()
@@ -36,6 +47,12 @@ func takeTurn():
 func finishTurn():
 	.finishTurn()
 	core.finishEnemyTurn()
+
+func damageTaken():
+	.damageTaken()
+	if healthBar.value < maxHealth:
+		healthBar.visible = true
+	healthBar.value = health
 	
 func die():
 	.die()

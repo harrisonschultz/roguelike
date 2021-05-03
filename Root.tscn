@@ -644,7 +644,7 @@ script = ExtResource( 36 )
 [node name="Fog" type="TileMap" parent="."]
 modulate = Color( 0.227451, 0.227451, 0.227451, 0.796078 )
 self_modulate = Color( 0.631373, 0.631373, 0.631373, 1 )
-z_index = 2
+z_index = 6
 tile_set = SubResource( 1 )
 cell_size = Vector2( 16, 16 )
 format = 1
@@ -664,7 +664,7 @@ format = 1
 position = Vector2( 320, 176 )
 frames = SubResource( 4 )
 animation = "Idle"
-frame = 4
+frame = 2
 playing = true
 centered = false
 script = ExtResource( 35 )
@@ -1213,6 +1213,8 @@ format = 1
 [node name="EnemyRoot" type="Node" parent="."]
 
 [node name="ItemRoot" type="Node" parent="."]
+
+[node name="PropRoot" type="Node" parent="."]
 [connection signal="pressed" from="Player/Camera2D/HudLayer/Button" to="." method="_on_Button_pressed"]
 [connection signal="pressed" from="Player/Camera2D/HudLayer/CharacterSheet/Page/PageRows/ExitCharacterSheet" to="." method="_on_ExitCharacterSheet_pressed"]
 [connection signal="pressed" from="Player/Camera2D/HudLayer/CharacterSheet/Page/PageRows/InnerPage/PageColumns/LeftSide/StatsContainer/VBoxContainer/Stats/StrPlus" to="Player" method="_on_StrPlus_pressed"]

@@ -16,3 +16,6 @@ func init(src, trg):
 	self.position = target.position + Vector2(8, 8)
 	self.z_index = Globals.Layer.Ability
 	self.play('default')
+
+func remove():
+	self.queue_free()

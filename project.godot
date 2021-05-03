@@ -34,6 +34,16 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://Item.gd"
 }, {
+"base": "Node",
+"class": "MapClass",
+"language": "GDScript",
+"path": "res://Map.gd"
+}, {
+"base": "AnimatedSprite",
+"class": "Prop",
+"language": "GDScript",
+"path": "res://Props/Prop.gd"
+}, {
 "base": "Object",
 "class": "Room",
 "language": "GDScript",
@@ -65,6 +75,8 @@ _global_script_class_icons={
 "FloorInteractable": "",
 "Gold": "",
 "Item": "",
+"MapClass": "",
+"Prop": "",
 "Room": "",
 "Shadow": "",
 "ShadowLine": "",

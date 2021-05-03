@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://assets/ui/smallhealthbarbackground.png" type="Texture" id=1]
+[ext_resource path="res://assets/ui/smallhealthbar.png" type="Texture" id=2]
+
+[node name="progress" type="TextureProgress"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = -2.0
+margin_right = -624.0
+margin_bottom = -359.0
+texture_under = ExtResource( 1 )
+texture_progress = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}

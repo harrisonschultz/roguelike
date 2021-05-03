@@ -3,12 +3,14 @@ extends Node
 var root
 var player
 var enemyRoot
+var propRoot
 var floors
 var walls
 
 func _ready():
 	root = get_tree().get_root().get_node("Root")
 	enemyRoot = root.get_node('EnemyRoot')
+	propRoot = root.get_node('PropRoot')
 	player = root.get_node("Player")
 	floors = root.get_node("Floor")
 	walls = root.get_node("Walls")
@@ -57,6 +59,8 @@ func whatIsOnTile(tile):
 func checkTileToMove(destination):
 	# Wall Collision Check
 	var cell = floors.get_cell(destination.x, destination.y)
+	if cell < 0:
+		return false
 	
 	# Unit Collision Check
 	var unitOnDestination = false
@@ -67,10 +71,22 @@ func checkTileToMove(destination):
 			unitOnDestination = true
 			break;
 	
-	if cell > -1 && !unitOnDestination:
-		return true
-	else:
+	if unitOnDestination:
 		return false
+		
+	
+	# Prop Collision Check
+	var collidingPropOnDestination = false
+	var props = propRoot.get_children()
+	for prop in props:
+		if prop.isCollidable() and worldToMap(prop.position) == destination:
+			collidingPropOnDestination = true
+			break;
+	
+	if collidingPropOnDestination:
+		return false
+		
+	return true
 		
 func checkTileForPath(destination):
 	# Wall Collision Check
