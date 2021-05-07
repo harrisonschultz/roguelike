@@ -24,11 +24,14 @@ var debugTileGlobals
 var roomType
 var props = []
 
-enum Sides { Top, Right, Bottom, Left }
 var ExitCounterpart = [Sides.Bottom, Sides.Left, Sides.Top, Sides.Right]
-var Prop = load('res://Props/Prop.tscn')
-var FloorStyles = load('res://FloorStyles.gd')
+var FloorStyles = preload('res://FloorStyles.gd')
 var floorStyles = FloorStyles.new()
+var RoomTypesT = preload("res://RoomTypes.gd")
+var RoomTypes = RoomTypesT.new().RoomTypes
+
+enum Sides { Top, Right, Bottom, Left }
+
 
 func _init(bl, h, w, Map, WallsTileMap, FloorTileMap, PropRoot, DebugTileMap, ExitSize):
 	bottomLeft = bl
@@ -85,32 +88,52 @@ func changeMapTile(x, y, type):
 func getCenter():
 	var centerHeight = round(height/2)
 	var centerWidth = round(width/2)
-	
 	var centerPoint = Vector2(topLeft.x + centerWidth , topLeft.y + centerHeight + 1)
 	
 	return centerPoint
-
 	
 func setType(type):
 	roomType = type
 	
+func isValidRandomRoom(requirements):
+	# Check for exclusions
+	if 'exclude' in requirements:
+			if 'exits' in requirements.exclude:
+				for exit in requirements.exclude.exits:
+					if exits[exit] != null:
+						return false
+	return true
+func getRandomRoomType():
+	var candidates = []
+	for key in RoomTypes.keys():
+		var room = RoomTypes[key]
+		if 'requirements' in room:
+			if isValidRandomRoom(room.requirements):
+				candidates.append(key)
+		else:
+			candidates.append(key)
+	return RoomTypes[candidates[Globals.rng.randi_range(0, candidates.size() -1)]]
+	
+func setRandomRoomType():
+	setType(getRandomRoomType())
+	
 func addRandomInteractables():
 	# Make some barrels
-	props.append(spawnProp( Globals.Props.Barrel, getRandomFloorLocation(), true))
+	props.append(spawnProp( Globals.Props.Barrel, getRandomFloorLocation()))
 	
 func decorate():
 	applyFloorStyle(getRandomFloorStyle())
 	addRandomInteractables()
 	if roomType:
 		# Start with permanent prop spawns
-		if roomType.permanent:
-			for p in roomType.permanent:
+		if roomType.props:
+			for p in roomType.props:
 				var collides = false
 				if 'collision' in p:
 					collides = true
-				props.append(spawnProp(p.asset, p.location, collides, true))
+				props.append(spawnProp(p.prop, p.location, true))
 		
-		if roomType.walls:
+		if "walls" in roomType:
 			for w in roomType.walls:
 				var flipX = false
 				var flipY = false
@@ -121,7 +144,7 @@ func decorate():
 				var loc = determineLocation(w.location)
 				walls.set_cell(loc.x, loc.y, w.asset, flipX, flipY)
 				
-		if roomType.floors:
+		if 'floors' in roomType:
 			for f in roomType.floors:
 				var flipX = false
 				var flipY = false
@@ -138,13 +161,11 @@ func addPropsToScene():
 	for p in props:
 		propRoot.add_child(p)		
 	
-func spawnProp(sprite, location, collision, fromConfig = false):
+func spawnProp(propName, location, fromConfig = false):
 	if fromConfig:
 		location = determineLocation(location)
 
-	var prop = Prop.instance()
-	prop.init(sprite, Movement.mapToWorld(location), collision)
-	return prop
+	return PropAPI.spawnProp(propName, location)
 	
 func getRandomFloorLocation():
 	return Vector2(Globals.rng.randi_range(topLeft.x+1, bottomRight.x-1), Globals.rng.randi_range(topLeft.y+3, bottomRight.y))

@@ -5,8 +5,9 @@ enum FloorTiles { Four, Full, Three, TwoHalf, DirtyBlank, BrokenOne, BrokenTwo, 
 enum Map { Occupied, Edge, Hallway}
 enum FogState { Hidden, Partial, Revealed }
 enum Directions { Up, Right, Down, Left }
-enum Things { Player, Enemy, Gold, Item }
+enum Things { Player, Enemy, Gold, Item, Prop, DestroyableProp, InteractableProp, FloorInteractable }
 enum WeaponType { OneHandedMelee, TwoHandedMelee, TwoHandedRanged }
+enum Sides { Top, Right, Bottom, Left }
 
 enum AttackType { Melee }
 enum LootType { Any }
@@ -20,6 +21,7 @@ const Layer = {
 	Enemy = 3,
 	Player = 3,
 	Prop = 2,
+	Item = 4,
 }
 const DamageType = {
 	Physical = 'Physical',
@@ -41,8 +43,40 @@ const EquipmentType = {
 	RightRing = 'RightRing'
 }
 
-var PropsFolder = "res://assets/props/"
-var Props = { "StairUp": PropsFolder + "stairUp.png",  "Prisoner": PropsFolder + "prisoner.png", "Barrel": PropsFolder + "barrel.png"}
-
+const Props = {
+	Prisoner = "Prisoner",
+	StairUp = "StairUp",
+	StairDown = "StairDown",
+	Barrel = "Barrel",
+	Chest = "Chest",
+	Bookcase = "Bookcase",
+	Torch = "Torch",
+	TableRed = "TableRed",
+	TableGreen = "TableGreen",
+	FlagGreen = "FlagGreen",
+	FlagRed = "FlagRed",
+	Rug = 'Rug',
+	RugRuined = 'RugRuined'
+}
 
 var rng = RandomNumberGenerator.new()
+
+var collidableLocations = {}
+
+func getPositionId(position):
+	return str(position.x) + str(position.y)
+
+func registerPosition(position: Vector2, mapPosition = false):
+	if !mapPosition:
+		position = Movement.worldToMap(position)
+	
+	collidableLocations[getPositionId(position)] = true
+
+func removePosition(position: Vector2, mapPosition = false):
+	if !mapPosition:
+		position = Movement.worldToMap(position)
+	collidableLocations.erase(getPositionId(position))
+	
+func movePosition(oldPos: Vector2, newPos: Vector2):
+	removePosition(oldPos, true)
+	registerPosition(newPos, true)

@@ -14,6 +14,11 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://Abilities/Ability.gd"
 }, {
+"base": "Prop",
+"class": "DestroyableProp",
+"language": "GDScript",
+"path": "res://Props/Barrel.gd"
+}, {
 "base": "Unit",
 "class": "Enemy",
 "language": "GDScript",
@@ -29,6 +34,11 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://Gold.gd"
 }, {
+"base": "Prop",
+"class": "InteractableProp",
+"language": "GDScript",
+"path": "res://Props/InteractableProp.gd"
+}, {
 "base": "Sprite",
 "class": "Item",
 "language": "GDScript",
@@ -39,10 +49,15 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://Map.gd"
 }, {
-"base": "AnimatedSprite",
+"base": "Sprite",
 "class": "Prop",
 "language": "GDScript",
 "path": "res://Props/Prop.gd"
+}, {
+"base": "Node",
+"class": "PropAPI",
+"language": "GDScript",
+"path": "res://Props/PropAPI.gd"
 }, {
 "base": "Object",
 "class": "Room",
@@ -71,12 +86,15 @@ _global_script_classes=[ {
 } ]
 _global_script_class_icons={
 "Ability": "",
+"DestroyableProp": "",
 "Enemy": "",
 "FloorInteractable": "",
 "Gold": "",
+"InteractableProp": "",
 "Item": "",
 "MapClass": "",
 "Prop": "",
+"PropAPI": "",
 "Room": "",
 "Shadow": "",
 "ShadowLine": "",
@@ -95,6 +113,7 @@ config/icon="res://icon.png"
 
 Globals="*res://Globals.gd"
 EnemyDetails="*res://Enemies/EnemyDetails.gd"
+PropDetails="*res://Props/PropDetails.gd"
 Movement="*res://Movement.gd"
 Items="*res://Items.gd"
 Loot="*res://Loot.gd"
@@ -156,9 +175,10 @@ C={
 
 [rendering]
 
-quality/2d/use_pixel_snap=true
+2d/snapping/use_gpu_pixel_snap=true
 environment/default_clear_color=Color( 0.121569, 0.121569, 0.121569, 1 )
 environment/default_environment="res://default_env.tres"
+quality/2d/use_pixel_snap=true
 
 [world]
 

@@ -85,6 +85,7 @@ func _process(delta):
 		
 func die():
 	stunned = true
+	Globals.removePosition(self.position)
 	setCollidable(false)
 	setAction(Action.Death)
 	setAnimation(actionAnimations[action])
@@ -116,7 +117,7 @@ func findPathToNode(goal):
 	for y in range(visionTopLeft.y, visionBottomRight.y):
 		for x in range(visionTopLeft.x, visionBottomRight.x):
 			var position = Vector2(x,y)
-			if position == myPosition || Movement.checkTileForPath(position) || position == lastKnownPlayerPosition || position == tileGoalPosition:
+			if position == myPosition || Movement.checkTileToMove(position) || position == lastKnownPlayerPosition || position == tileGoalPosition:
 				visibleTiles.append(position)
 				astar.add_point(positionToId(position), position, 1)
 			else:
@@ -131,12 +132,12 @@ func findPathToNode(goal):
 			inCombat = true
 			break;
 			
-	# find path to player if player is in aggro range
+	# Find path to player if player is in aggro range
 	if lastKnownPlayerPosition: 
 		for index in range(visibleTiles.size()):
 			var tile = visibleTiles[index]
 			
-			# if invalid tile skip
+			# If invalid tile skip
 			if !tile:
 				continue
 			
@@ -177,12 +178,15 @@ func handleDeath():
 	
 func move(dest):
 	if Movement.checkTileToMove(dest):
+		previousPosition = self.position
+		Globals.movePosition(Movement.worldToMap(self.position), dest)
 		destination = dest
 		setAction(Action.Move)
 
 func attack(dest, attackTarget, attack):
 	chosenAttack = attack
 	target = attackTarget
+	Globals.registerPosition(self.position)
 	previousPosition = self.position
 	destination = Movement.getDestTile(self, Movement.determineDirection(self, dest))
 	setAction(Action.Attack)
@@ -212,10 +216,11 @@ func removeDebuff(debuff, index):
 	
 func progressDebuffs():
 	for index in debuffs.size():
-		var debuff = debuffs[index]
-		debuff.affect()
-		debuff.duration -= 1
-		removeDebuff(debuff, index)
+		if index < debuffs.size():
+			var debuff = debuffs[index]
+			debuff.affect()
+			debuff.duration -= 1
+			removeDebuff(debuff, index)
 		
 func hurt(dmg):
 	health -= dmg

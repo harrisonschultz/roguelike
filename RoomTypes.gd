@@ -3,13 +3,13 @@ extends Node
 
 var RoomTypes = {
 	"start": {
-		"permanent":[{
+		"props":[{
 				"location": { "x": {"from": "center", "mod": 0}, "y": {"from": "center", "mod": 0}},
-				"asset": Globals.Props.StairUp
+				"prop": Globals.Props.StairUp
 			},
 			{
 				"location": {"x": {"from": "topLeft", "mod": 2}, "y": {"from": "topLeft", "mod": 1}},
-				"asset": Globals.Props.Prisoner
+				"prop": Globals.Props.Prisoner
 			},
 		],
 		"walls":[
@@ -52,6 +52,116 @@ var RoomTypes = {
 				"asset": Globals.FloorTiles.BrokenTwo
 			}
 		]
+	},
+	"library": {
+		"props":[{
+				"location": { "x": {"from": "center", "mod": -2}, "y": {"from": "center", "mod": -2}},
+				"prop": Globals.Props.Bookcase
+			},
+			{
+				"location": { "x": {"from": "center", "mod": -1}, "y": {"from": "center", "mod": -2}},
+				"prop": Globals.Props.Bookcase
+			},
+			{
+				"location": { "x": {"from": "center", "mod": 1}, "y": {"from": "center", "mod": -2}},
+				"prop": Globals.Props.Bookcase
+			},
+			{
+				"location": { "x": {"from": "center", "mod": 2}, "y": {"from": "center", "mod": -2}},
+				"prop": Globals.Props.Bookcase
+			},
+			{
+				"location": { "x": {"from": "center", "mod": -2}, "y": {"from": "center", "mod": 2}},
+				"prop": Globals.Props.Bookcase
+			},
+			{
+				"location": { "x": {"from": "center", "mod": -1}, "y": {"from": "center", "mod": 2}},
+				"prop": Globals.Props.Bookcase
+			},
+			{
+				"location": { "x": {"from": "center", "mod": 1}, "y": {"from": "center", "mod": 2}},
+				"prop": Globals.Props.Bookcase
+			},
+			{
+				"location": { "x": {"from": "center", "mod": 2}, "y": {"from": "center", "mod": 2}},
+				"prop": Globals.Props.Bookcase
+			},
+			{
+				"location": { "x": {"from": "center", "mod": 2}, "y": {"from": "topLeft", "mod": 1}},
+				"prop": Globals.Props.Torch
+			},
+			{
+				"location": { "x": {"from": "center", "mod": -2}, "y": {"from": "topLeft", "mod": 1}},
+				"prop": Globals.Props.Torch
+			}
+		],
+	},
+	"chest": {
+		"requirements": {
+			"exclude": {
+				"exits": [Globals.Sides.Top]
+			}
+		},
+		"props":[
+			{
+				"location": { "x": {"from": "center", "mod": -1}, "y": {"from": "topLeft", "mod": 2}},
+				"prop": Globals.Props.RugRuined
+			},
+			{
+				"location": { "x": {"from": "center", "mod": 0}, "y": {"from": "topLeft", "mod": 2}},
+				"prop": Globals.Props.Chest
+			},
+			{
+				"location": { "x": {"from": "center", "mod": 1}, "y": {"from": "topLeft", "mod": 1}},
+				"prop": Globals.Props.Torch
+			},
+			{
+				"location": { "x": {"from": "center", "mod": -1}, "y": {"from": "topLeft", "mod": 1}},
+				"prop": Globals.Props.Torch
+			}]
+	},
+	"dining": {
+		"props":[{
+				"location": { "x": {"from": "center", "mod": -2}, "y": {"from": "center", "mod": -2}},
+				"prop": Globals.Props.TableRed
+			},
+			{
+				"location": { "x": {"from": "center", "mod": 2}, "y": {"from": "center", "mod": -2}},
+				"prop": Globals.Props.TableRed
+			},
+			{
+				"location": { "x": {"from": "center", "mod": 1}, "y": {"from": "center", "mod": 0}},
+				"prop": Globals.Props.TableGreen
+			},
+			{
+				"location": { "x": {"from": "center", "mod": -2}, "y": {"from": "center", "mod": 0}},
+				"prop": Globals.Props.TableGreen
+			},
+			{
+				"location": { "x": {"from": "center", "mod": -2}, "y": {"from": "center", "mod": 2}},
+				"prop": Globals.Props.TableRed
+			},
+			{
+				"location": { "x": {"from": "center", "mod": 2}, "y": {"from": "center", "mod": 2}},
+				"prop": Globals.Props.TableRed
+			},
+			{
+				"location": { "x": {"from": "topRight", "mod": -1}, "y": {"from": "topLeft", "mod": 1}},
+				"prop": Globals.Props.Torch
+			},
+			{
+				"location": { "x": {"from": "topLeft", "mod": 1}, "y": {"from": "topLeft", "mod": 1}},
+				"prop": Globals.Props.Torch
+			},
+			{
+				"location": { "x": {"from": "center", "mod": 2}, "y": {"from": "topLeft", "mod": 1}},
+				"prop": Globals.Props.FlagRed
+			},
+			{
+				"location": { "x": {"from": "center", "mod": -2}, "y": {"from": "topLeft", "mod": 1}},
+				"prop": Globals.Props.FlagRed
+			},
+		],
 	}
 }
 

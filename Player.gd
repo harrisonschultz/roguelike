@@ -110,9 +110,8 @@ func addToInventory(item):
 	if checkForSpace():
 		inventory.add_child(item)
 		
-
-		
-func onEnemyClick(enemy: Enemy):
+	
+func onEnemyClick(enemy):
 	if enemyClickAction: 
 		core.performAbility(enemyClickAction, self, enemy)
 
@@ -261,11 +260,14 @@ func _input(event):
 func move(direction):
 	destination = Movement.getDestTile(self, direction)
 	if Movement.checkTileToMove(destination):
+		Globals.movePosition(Movement.worldToMap(self.position), destination)
 		setAction(Action.Move)
 	else:
 		var thing = Movement.whatIsOnTile(destination)
 		if thing:
 			if thing.identity == Globals.Things.Enemy && thing.isCollidable():
+				attack(direction, thing, 'basic')
+			if thing.identity == Globals.Things.DestroyableProp && thing.isCollidable():
 				attack(direction, thing, 'basic')
 				
 func attack(direction, attackTarget, attack):

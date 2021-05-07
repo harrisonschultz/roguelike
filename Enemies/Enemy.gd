@@ -58,7 +58,7 @@ func die():
 	.die()
 	if awards:
 		player.receive(awards)
-	Loot.dropLoot(self, itemRoot)
+	Loot.dropLoot(self)
 
 func selectAction():
 	var pathToPlayer = findPathToNode(player)

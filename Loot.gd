@@ -1,15 +1,32 @@
 extends Node
 
 var itemScene = preload("res://Item.tscn")
+var ItemRoot 
+var PropRoot
 
-func dropLoot(node, rootNode):
-	var items = getLoot(node)
-	var gold = getGold(node)
-	spawnGold(gold, node.position, rootNode)
-	spawnItems(items, node.position, rootNode)
+
+func init(itemRoot, propRoot):
+	ItemRoot = itemRoot
+	PropRoot = propRoot
+
+func dropLoot(node):
+	if 'randomItems' in node.loot:
+		var items = getLoot(node)
+		spawnItems(items, node.position)
 	
-func getGold(node):
-	return Globals.rng.randi_range(node.loot.gold[0], node.loot.gold[1])
+	if 'gold' in node.loot:
+		var gold = getGold(node.loot.gold)
+		spawnGold(gold, node.position)
+	
+func getGold(gold):
+	var goldCount = Globals.rng.randi_range(gold[0], gold[1])
+	
+	# Check for random spawn
+	if gold.size() > 2:
+		if Globals.rng.randi_range(0, 100) <= gold[2]:
+			return goldCount
+		
+	return goldCount
 
 func getLoot(node):
 	var items = []
@@ -28,11 +45,12 @@ func chooseItem(minRarity, maxRarity, type = Globals.LootType.Any):
 	# Choose a random item from the filteredItemPool
 	return Items.items[Globals.rng.randi_range(0, filteredItemPool.size() - 1)]
 
-func spawnItems(items, position, rootNode):
+func spawnItems(items, position):
 	for item in items:
 		var instance = itemScene.instance()
-		rootNode.add_child(instance)
+		ItemRoot.add_child(instance)
 		instance.init(item, position)
 	
-func spawnGold(gold, position, rootNode):
-	rootNode.add_child(Gold.new(position, gold ))
+func spawnGold(gold, position):
+	if gold > 0:
+		PropRoot.add_child(Gold.new(position, gold))

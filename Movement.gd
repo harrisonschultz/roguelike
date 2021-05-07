@@ -49,8 +49,15 @@ func worldToMap(pos: Vector2):
 	return Vector2(x,y)
 	
 func whatIsOnTile(tile):
-	var nodes = enemyRoot.get_children()
+	var nodes = []
+	var enemies = enemyRoot.get_children()
+	var props = propRoot.get_children()
+	
+	# Add all the nodes
+	nodes += enemies
+	nodes += props
 	nodes.append(player)
+	
 	for node in nodes:
 		if worldToMap(node.position) == tile:
 			return node
@@ -62,6 +69,20 @@ func checkTileToMove(destination):
 	if cell < 0:
 		return false
 	
+	if Globals.getPositionId(destination) in Globals.collidableLocations:
+		return false
+		
+	return true
+		
+
+	
+		
+func checkTileForPath(destination):
+	# Wall Collision Check
+	var cell = floors.get_cell(destination.x, destination.y)
+	if cell < 0:
+		return false
+
 	# Unit Collision Check
 	var unitOnDestination = false
 	var nodes = enemyRoot.get_children()
@@ -74,37 +95,7 @@ func checkTileToMove(destination):
 	if unitOnDestination:
 		return false
 		
-	
-	# Prop Collision Check
-	var collidingPropOnDestination = false
-	var props = propRoot.get_children()
-	for prop in props:
-		if prop.isCollidable() and worldToMap(prop.position) == destination:
-			collidingPropOnDestination = true
-			break;
-	
-	if collidingPropOnDestination:
-		return false
-		
 	return true
-		
-func checkTileForPath(destination):
-	# Wall Collision Check
-	var cell = floors.get_cell(destination.x, destination.y)
-	
-	# Unit Collision Check
-	var unitOnDestination = false
-	var nodes = enemyRoot.get_children()
-	nodes.append(player)
-	for node in nodes:
-		if worldToMap(node.position) == destination:
-			unitOnDestination = true
-			break;
-	
-	if cell > -1 && !unitOnDestination:
-		return true
-	else:
-		return false
 		
 func getDestTile(node, direction):
 	var destination = node.position
@@ -123,3 +114,10 @@ func getDestTile(node, direction):
 func centerMe(node):
 	node.position.x = round(node.position.x / Globals.tile_size) * Globals.tile_size
 	node.position.y = round(node.position.y / Globals.tile_size) * Globals.tile_size
+	
+func getDistance(source, target):
+	var sourcePosition = worldToMap(source.position) 
+	var targetPostiion = worldToMap(target.position)
+	var horizontalDistance = abs(sourcePosition.x - targetPostiion.x )
+	var verticalDistance = abs(sourcePosition.y - targetPostiion.y)
+	return horizontalDistance + verticalDistance

@@ -2,7 +2,7 @@ extends Node
 
 class_name MapClass
 
-const wallsWithCollision = [7,8,14,15]
+const wallsWithCollision = [7, 8, 14, 15]
 const MIN_ROOM_SIZE = 8
 const MAX_ROOM_SIZE = 12
 const EXIT_SIZE = 5
@@ -17,11 +17,9 @@ var ItemRoot
 var PropRoot
 var rooms = []
 var map = []
-var RoomTypesT = load("res://RoomTypes.gd")
-var RoomTypes = RoomTypesT.new()
-
-var Slime = load("res://Enemies/Slime/Slime.tscn")
-
+var RoomTypesT = preload("res://RoomTypes.gd")
+var RoomTypes = RoomTypesT.new().RoomTypes
+var Slime = preload("res://Enemies/Slime/Slime.tscn")
 
 func reloadLevel():
 	initializeMap()
@@ -63,7 +61,7 @@ func buildFirstRoom():
 	
 	var bottomLeft = Vector2(10, 10 + height - 1)
 	var room = Room.new(bottomLeft, height, width, map, Walls, Floor, PropRoot, DebugTileMap, EXIT_SIZE)
-	room.setType(RoomTypes.RoomTypes.start)
+	room.setType(RoomTypes.chest)
 	room.buildRoom()
 	return room
 
@@ -97,7 +95,6 @@ func loadLevel():
 				if room.exits[e]:
 					finalExit = e
 			if room.exits[exit] != null && rooms.size() <= roomCount:
-				
 				if !Globals.rng.randi_range(0, 3) && (exitExists || !(exit >= finalExit)):
 					continue
 				
@@ -120,6 +117,8 @@ func loadLevel():
 
 	# Place props
 	for r in rooms:
+		if !r.roomType:
+			r.setRandomRoomType()
 		r.decorate()
 	
 	var slime = Slime.instance()
@@ -428,3 +427,6 @@ func checkMapSquare(height, width, x, y):
 				if map[xPos][yPos] != -1:
 					return false
 		return true
+
+	
+	

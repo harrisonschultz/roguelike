@@ -40,6 +40,7 @@ func _ready():
 	Maps.loadLevel()
 	Player.position = Vector2(240,240)
 	Player.setVision()
+	Loot.init(ItemRoot, PropRoot)
 		
 func _input(event):
 	if inputDelay > 0.15:
@@ -99,7 +100,7 @@ func combat(source, attack, victim):
 		totalDamage += damageTaken
 		
 	victim.health -= totalDamage
-	if totalDamage > 0:
+	if totalDamage > 0 && victim.has_method('damageTaken'):
 		victim.damageTaken()
 	
 	if victim.health <= 0:
@@ -127,10 +128,9 @@ func getRandomDamage(source, attack):
 	return Globals.rng.randi_range(damageRange[0], damageRange[1])
 		
 func activateFloorInteractables(node: Unit):
-	for item in ItemRoot.get_children():
-		if node.identity == Globals.Things.Player:
-			if item.identity == Globals.Things.Gold:
-				item.activate(node)
+	for prop in PropRoot.get_children():
+		if prop.identity == Globals.Things.FloorInteractable && prop.activateRange >= Movement.getDistance(prop, node):
+			prop.activate(node)
 				
 func showCharacterSheet():
 	var hud = get_node("Player/Camera2D/HudLayer/Hud")
